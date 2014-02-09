@@ -33,6 +33,15 @@ var argv = require('yargs')
     .argv
 ;
 
+console.log();
+console.log('Configuration')
+console.log('\tListener Port: ' + argv.port);
+console.log('\tIdP Issuer URI: ' + argv.issuer);
+console.log('\tSP ACS URL: ' + argv.acs);
+console.log('\tSP Audience URI: ' + argv.audience);
+console.log('\tDefault RelayState: ' + argv.relaystate);
+console.log();
+
 
 // all environments
 app.set('port', process.env.PORT || argv.port);
@@ -54,7 +63,7 @@ app.get('/idp', samlp.auth({
   recipient:            argv.acs, 
   digestAlgorithm:      'sha1',      
   signatureAlgorithm:   'rsa-sha1',
-  RelayState:           argv.relayState,
+  RelayState:           argv.relaystate,
   profileMapper:        SimpleProfileMapper,
   getUserFromRequest:   function(req) { return config.user; },
   getPostURL: function (audience, authnRequestDom, req, callback) { 
