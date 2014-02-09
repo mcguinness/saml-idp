@@ -1,0 +1,15 @@
+{
+  "name": "saml-idp",
+  "description": "sample identity provider for www.okta.com",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "3.4.8",
+    "jade": "*",
+    "samlp": ">=0.4.8",
+    "yargs": ">=1.0.15"
+  }
+}
