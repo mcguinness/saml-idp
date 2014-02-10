@@ -3,12 +3,12 @@
  * Module dependencies.
  */
 
-var express    			= require('express'),
-	os                  = require('os'),
-    fs         			= require('fs'),
-    http       			= require('http'),
-    path       			= require('path'),
-    samlp      			= require('samlp'),
+var express             = require('express'),
+    os                  = require('os'),
+    fs                  = require('fs'),
+    http                = require('http'),
+    path                = require('path'),
+    samlp               = require('samlp'),
     config              = require('./config.js'),
     SimpleProfileMapper = require('./simpleProfileMapper.js');
 
@@ -16,7 +16,7 @@ var express    			= require('express'),
 var argv = require('yargs')
     .usage('Simple IdP\nUsage: $0')
     .example('$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', 
-    		'\n\nStart IdP web server minting SAML assertions for service provider ACS URL and audience')
+        '\n\nStart IdP web server minting SAML assertions for service provider ACS URL and audience')
     .default({ p: 7000, iss: 'urn:example:idp'})
     .alias('p', 'port')
     .describe('port', 'Web server listener port')
@@ -75,19 +75,20 @@ if ('development' == app.get('env')) {
 }
 
 // register idp flow route
-app.get('/',     samlp.auth(idpOptions));
-app.post('/',    samlp.auth(idpOptions));
-app.get('/idp',  samlp.auth(idpOptions));
+app.get('/', samlp.auth(idpOptions));
+app.post('/', samlp.auth(idpOptions));
+app.get('/idp', samlp.auth(idpOptions));
 app.post('/idp', samlp.auth(idpOptions));
+app.get('/metadata', samlp.metadata(idpOptions));
 
 
 console.log('starting server...');
 server.listen(app.get('port'), function() {
-	var address  = server.address(),
-			hostname = os.hostname();
-			baseUrl  = address.address === '0.0.0.0' ? 
-				'http://' + hostname + ':' + address.port :
-				'http://localhost:' + address.port
+  var address  = server.address(),
+      hostname = os.hostname();
+      baseUrl  = address.address === '0.0.0.0' ? 
+        'http://' + hostname + ':' + address.port :
+        'http://localhost:' + address.port
   
   console.log('listening on port: ' + app.get('port'));
   console.log();
