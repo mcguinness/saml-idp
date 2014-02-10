@@ -3,7 +3,7 @@ function SimpleProfileMapper (pu) {
     return new SimpleProfileMapper(pu);
   }
   this._pu = pu;
-  this.;
+  this.nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
 }
 
 SimpleProfileMapper.prototype.getClaims = function() {
