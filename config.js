@@ -4,10 +4,10 @@
  */
 var userProfile = {
 	// SAML Subject ID == Okta Login
-	id: 'oceanus.mcjanky@example.com',
-	firstName: 'Oceanus',
-	lastName: 'McJanky',
-	email: 'oceanus.mcjanky@example.com'
+	id: 'saml.jackson@example.com',
+	firstName: 'Saml',
+	lastName: 'Jackson',
+	email: 'saml.jackson@example.com'
 }
 
 module.exports = {
