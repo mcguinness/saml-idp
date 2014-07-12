@@ -1,0 +1,49 @@
+<div class="col-md-6 col-md-offset-3">
+	<div class="panel panel-default">
+	  <div class="panel-heading">
+	    <h3 class="panel-title">IdP User</h3>
+	  </div>
+	  <div class="panel-body">
+
+			<form class="form-horizontal" role="form" method="POST">
+
+				<div class="form-group">
+				  <label for="login" class="col-sm-3 control-label">Login</label>
+				  <div class="col-sm-9">
+				    <input id="login" class="form-control" name="login" type="email" placeholder="user@example.com" required="" value="{{user.id}}">
+				    <p class="help-block">SAML Subject NameID</p>
+				  </div>
+				</div>
+
+				<div class="form-group">
+				  <label for="firstName" class="col-sm-3 control-label">First Name</label>
+				  <div class="col-sm-9">
+				    <input id="firstName" class="form-control" name="firstName" type="text" required="" value="{{user.firstName}}">
+				  </div>
+				</div>
+
+				<div class="form-group">
+				  <label for="firstName" class="col-md-3 control-label">Last Name</label>
+				  <div class="col-sm-9">
+				    <input id="lastName" class="form-control" name="lastName" type="text" required="" value="{{user.lastName}}">
+				  </div>
+				</div>
+
+				<div class="form-group">
+				  <label for="firstName" class="col-md-3 control-label">Email</label>
+				  <div class="col-md-9">
+				    <input id="email" class="form-control" name="email" type="email" placeholder="user@example.com" required="" value="{{user.email}}">
+				  </div>
+				</div>
+
+				<div class="form-group">
+			    <div class="col-md-12 text-right">
+			      <button type="submit" class="btn btn-default input-xlarge">Sign in</button>
+			    </div>
+				</div>
+			</form>
+	  </div>
+	</div>
+</div>
+
+

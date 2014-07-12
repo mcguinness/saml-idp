@@ -8,6 +8,11 @@ var express             = require('express'),
     fs                  = require('fs'),
     http                = require('http'),
     path                = require('path'),
+    hbsEngine           = require('express3-handlebars'),
+    logger              = require('morgan'),
+    favicon             = require('static-favicon'),
+    cookieParser        = require('cookie-parser'),
+    bodyParser          = require('body-parser'),
     samlp               = require('samlp'),
     config              = require('./config.js'),
     SimpleProfileMapper = require('./simpleProfileMapper.js');
@@ -53,33 +58,81 @@ var idpOptions = {
   signatureAlgorithm:   'rsa-sha1',
   RelayState:           argv.relaystate,
   profileMapper:        SimpleProfileMapper,
-  getUserFromRequest:   function(req) { return config.user; },
+  getUserFromRequest:   function(req) { return req.user; },
   getPostURL:           function (audience, authnRequestDom, req, callback) { 
                           return callback(null, argv.acs);
                         }
 }
+// idp handler
+var idpHandler = samlp.auth(idpOptions);
 
 // globals
 var app    = express();
 var server = http.createServer(app);
 
-// all environments
+// environment
 app.set('port', process.env.PORT || argv.port);
-app.use(express.logger(':date> :method :url - {:referrer} => :status (:response-time ms)'));
-app.use(express.urlencoded());
-app.use(app.router);
+app.set('views', path.join(__dirname, 'views'));
+// view engine
+app.engine('hbs', hbsEngine({extname:'hbs', defaultLayout:'main.hbs'}));
+app.set('view engine', 'hbs');
+// middleware
+app.use(favicon());
+app.use(logger(':date> :method :url - {:referrer} => :status (:response-time ms)'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// development only
-if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
-}
 
-// register idp flow route
-app.get('/', samlp.auth(idpOptions));
-app.post('/', samlp.auth(idpOptions));
-app.get('/idp', samlp.auth(idpOptions));
-app.post('/idp', samlp.auth(idpOptions));
-app.get('/metadata', samlp.metadata(idpOptions));
+// add default user to request
+app.use(function(req,res,next){
+    req.user = config.user;
+    next();
+});
+
+
+// add routes
+app.get(['/', '/idp'], function(req, res) {
+    var user = req.user;
+    res.render('user', {
+        "user" : user
+    });
+});
+
+app.post(['/', '/idp'], function(req, res) {
+  if (req.body.SAMLRequest) {
+    var user = req.user;
+    res.render('user', {
+        "user" : user
+    });
+  } else {
+    req.user.id = req.body.login;
+    req.user.firstName = req.body.firstName;
+    req.user.lastName = req.body.lastName;
+    req.user.email = req.body.email;
+    idpHandler(req, res);
+  }
+});
+
+app.get('/metadata', idpHandler);
+
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+// development error handler
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+      message: err.message,
+      error: err
+  });
+});
 
 
 console.log('starting server...');
