@@ -54,6 +54,7 @@ var idpOptions = {
   key:                  fs.readFileSync(path.join(__dirname, 'server-key.pem')),
   audience:             argv.audience,
   recipient:            argv.acs, 
+  destination:          argv.acs,
   digestAlgorithm:      'sha1',      
   signatureAlgorithm:   'rsa-sha1',
   RelayState:           argv.relaystate,
