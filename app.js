@@ -116,7 +116,7 @@ app.post(['/', '/idp'], function(req, res) {
   }
 });
 
-app.get('/metadata', idpHandler);
+app.get('/metadata', samlp.metadata(idpOptions));
 
 
 // catch 404 and forward to error handler
