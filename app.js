@@ -47,6 +47,8 @@ console.log('SP Audience URI:\n\t' + argv.audience);
 console.log('Default RelayState:\n\t' + argv.relaystate);
 console.log();
 
+
+var requestedAcs;
 // idp options
 var idpOptions = {
   issuer:               argv.issuer,
@@ -60,8 +62,8 @@ var idpOptions = {
   RelayState:           argv.relaystate,
   profileMapper:        SimpleProfileMapper,
   getUserFromRequest:   function(req) { return req.user; },
-  getPostURL:           function (audience, authnRequestDom, req, callback) { 
-                          return callback(null, argv.acs);
+  getPostURL:           function (audience, authnRequestDom, req, callback) {
+                          return callback(null, requestedAcs ? requestedAcs : argv.acs);
                         }
 }
 // idp handler
@@ -96,8 +98,11 @@ app.use(function(req,res,next){
 // add routes
 app.get(['/', '/idp'], function(req, res) {
     var user = req.user;
-    res.render('user', {
-        "user" : user
+    samlp.parseRequest(req, function(err, data){
+      res.render('user', {
+          "user" : user,
+          "acs" : data ? data.assertionConsumerServiceURL : null
+      });
     });
 });
 
@@ -112,6 +117,7 @@ app.post(['/', '/idp'], function(req, res) {
     req.user.firstName = req.body.firstName;
     req.user.lastName = req.body.lastName;
     req.user.email = req.body.email;
+    requestedAcs = req.body.acs;
     idpHandler(req, res);
   }
 });
