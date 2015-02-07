@@ -1,49 +1,159 @@
-<div class="col-md-6 col-md-offset-3">
-	<div class="panel panel-default">
-	  <div class="panel-heading">
-	    <h3 class="panel-title">IdP User</h3>
-	  </div>
-	  <div class="panel-body">
 
-			<form class="form-horizontal" role="form" method="POST">
+{{#if authnRequest.id}}
 
-				<div class="form-group">
-				  <label for="login" class="col-sm-3 control-label">Login</label>
-				  <div class="col-sm-9">
-				    <input id="login" class="form-control" name="login" type="email" placeholder="user@example.com" required="" value="{{user.id}}">
-				    <p class="help-block">SAML Subject NameID</p>
-				  </div>
-				</div>
+<div class="col-md-8 col-md-offset-2">
 
-				<div class="form-group">
-				  <label for="firstName" class="col-sm-3 control-label">First Name</label>
-				  <div class="col-sm-9">
-				    <input id="firstName" class="form-control" name="firstName" type="text" required="" value="{{user.firstName}}">
-				  </div>
-				</div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <a data-toggle="collapse" href="#collapse-authn-request" aria-expanded="false" aria-controls="collapse-authn-request">
+        <h3 class="panel-title"><i class="fa fa-code"> SP Authentication Request</i></h3>
+      </a>
+    </div>
+    <div id="collapse-authn-request" class="panel-body collapse">
+      <form class="form-horizontal" role="form">
 
-				<div class="form-group">
-				  <label for="firstName" class="col-md-3 control-label">Last Name</label>
-				  <div class="col-sm-9">
-				    <input id="lastName" class="form-control" name="lastName" type="text" required="" value="{{user.lastName}}">
-				  </div>
-				</div>
+        <div class="form-group">
+          <label for="requestId" class="col-sm-3 control-label">Request ID</label>
+          <div class="col-sm-9">
+            <p id="requestId" class="form-control-static">{{authnRequest.id}}</p>
+          </div>
+        </div>
 
-				<div class="form-group">
-				  <label for="firstName" class="col-md-3 control-label">Email</label>
-				  <div class="col-md-9">
-				    <input id="email" class="form-control" name="email" type="email" placeholder="user@example.com" required="" value="{{user.email}}">
-				  </div>
-				</div>
+        <div class="form-group">
+          <label for="issuer" class="col-sm-3 control-label">Issuer</label>
+          <div class="col-sm-9">
+            <p id="issuer" class="form-control-static">{{authnRequest.issuer}}</p>
+          </div>
+        </div>
 
-				<div class="form-group">
-			    <div class="col-md-12 text-right">
-			      <button type="submit" class="btn btn-default input-xlarge">Sign in</button>
-			    </div>
-				</div>
-			</form>
-	  </div>
-	</div>
+        {{#if authnRequest.relayState}}
+
+        <div class="form-group">
+          <label for="relayState" class="col-sm-3 control-label">Relay State</label>
+          <div class="col-sm-9">
+            <p id="relayState" class="form-control-static">{{authnRequest.relayState}}</p>
+          </div>
+        </div>
+
+        {{/if}}
+
+
+        {{#if authnRequest.acsUrl}}
+
+        <div class="form-group">
+          <label for="acsUrl" class="col-sm-3 control-label">ACS URL</label>
+          <div class="col-sm-9">
+            <p id="acsUrl" class="form-control-static">{{authnRequest.acsUrl}}</p>
+          </div>
+        </div>
+
+        {{/if}}
+
+      </form>
+    </div>
+  </div>
 </div>
+
+{{/if}}
+
+<div class="col-md-8 col-md-offset-2">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"><i class="fa fa-user-plus"> SAML Assertion Attributes</i></h3>
+    </div>
+    <div class="panel-body">
+
+      <form class="form-horizontal" role="form" method="POST">
+
+        <div class="form-group">
+          <label for="userName" class="col-sm-3 control-label">Subject NameID</label>
+          <div class="col-sm-9">
+            <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
+          <div class="col-sm-9">
+            <select id="nameIdFormat" class="form-control" name="nameIdFormat">
+              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
+              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
+              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
+              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
+              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
+              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
+              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="firstName" class="col-sm-3 control-label">First Name</label>
+          <div class="col-sm-9">
+            <input id="firstName" class="form-control" name="firstName" type="text" required="" value="{{user.firstName}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName" class="col-md-3 control-label">Last Name</label>
+          <div class="col-sm-9">
+            <input id="lastName" class="form-control" name="lastName" type="text" required="" value="{{user.lastName}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="displayName" class="col-md-3 control-label">Display Name</label>
+          <div class="col-sm-9">
+            <input id="displayName" class="form-control" name="displayName" type="text" required="" value="{{user.displayName}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="col-md-3 control-label">Email</label>
+          <div class="col-md-9">
+            <input id="email" class="form-control" name="email" type="email" placeholder="user@example.com" required="" value="{{user.email}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName" class="col-md-3 control-label">Mobile Phone</label>
+          <div class="col-sm-9">
+            <input id="mobilePhone" class="form-control" name="mobilePhone" type="tel" required="" value="{{user.mobilePhone}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="groups" class="col-md-3 control-label">Groups</label>
+          <div class="col-md-9">
+            <input id="groups" class="form-control" name="groups" placeholder="Add group" value="{{user.groups}}" data-role="tagsinput">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-12 text-right">
+            <button type="submit" class="btn btn-default input-xlarge"><i class="fa fa-sign-in"> Sign in</i></button>
+          </div>
+        </div>
+
+        {{#if authnRequest.id}}
+        <input type='hidden' name="_authnRequest" value='{{serialize authnRequest}}'/>
+        {{/if}}
+        
+      </form>
+    </div>
+  </div>
+</div>
+
+{{#extend "scripts"}}
+<script>
+  $("#nameIdFormat option").filter(function() {
+      return $(this).text() == '{{user.nameIdFormat}}'; 
+  }).prop('selected', true);
+
+  $('#groups').tagsinput({
+    allowDuplicates: false
+  });
+</script>
+{{/extend}}
 
 

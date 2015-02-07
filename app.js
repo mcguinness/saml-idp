@@ -8,15 +8,26 @@ var express             = require('express'),
     fs                  = require('fs'),
     http                = require('http'),
     path                = require('path'),
-    hbsEngine           = require('express3-handlebars'),
+    extend              = require('extend'),
+    hbs                 = require('hbs'),
     logger              = require('morgan'),
-    favicon             = require('static-favicon'),
     cookieParser        = require('cookie-parser'),
     bodyParser          = require('body-parser'),
     samlp               = require('samlp'),
     config              = require('./config.js'),
     SimpleProfileMapper = require('./simpleProfileMapper.js');
 
+/**
+ * Globals
+ */
+
+var app    = express();
+var server = http.createServer(app);
+var blocks = {};
+
+/**
+ * Arguments
+ */
 
 var argv = require('yargs')
     .usage('Simple IdP\nUsage: $0')
@@ -27,12 +38,12 @@ var argv = require('yargs')
     .describe('port', 'Web server listener port')
     .alias('iss', 'issuer')
     .describe('issuer', 'IdP Issuer URI')
-    .alias('url', 'acs')
-    .describe('acs', 'SP Assertion Consumer URL')
+    .alias('acs', 'acsUrl')
+    .describe('acsUrl', 'SP Assertion Consumer URL')
     .alias('aud', 'audience')
     .describe('audience', 'SAML SP Audience')
-    .alias('rs', 'relaystate')
-    .describe('relaystate', 'Default SAML RelayState for AuthnResponse')
+    .alias('rs', 'relayState')
+    .describe('relayState', 'Default SAML RelayState for AuthnResponse')
     .demand('aud', 'acs')
     .argv
 ;
@@ -42,77 +53,151 @@ console.log('loading configuration...');
 console.log();
 console.log('Listener Port:\n\t' + argv.port);
 console.log('IdP Issuer URI:\n\t' + argv.issuer);
-console.log('SP ACS URL:\n\t' + argv.acs);
+console.log('SP ACS URL:\n\t' + argv.acsUrl);
 console.log('SP Audience URI:\n\t' + argv.audience);
-console.log('Default RelayState:\n\t' + argv.relaystate);
+console.log('Default RelayState:\n\t' + argv.relayState);
 console.log();
 
-// idp options
+/**
+ * IdP Configuration
+ */
+
 var idpOptions = {
   issuer:               argv.issuer,
   cert:                 fs.readFileSync(path.join(__dirname, 'server-cert.pem')),
   key:                  fs.readFileSync(path.join(__dirname, 'server-key.pem')),
   audience:             argv.audience,
-  recipient:            argv.acs, 
-  destination:          argv.acs,
+  recipient:            argv.acsUrl, 
+  destination:          argv.acsUrl,
+  acsUrl:               argv.acsUrl,
+  RelayState:           argv.relayState,       
   digestAlgorithm:      'sha1',      
   signatureAlgorithm:   'rsa-sha1',
-  RelayState:           argv.relaystate,
+  signReponse:          true,
   profileMapper:        SimpleProfileMapper,
   getUserFromRequest:   function(req) { return req.user; },
-  getPostURL:           function (audience, authnRequestDom, req, callback) { 
-                          return callback(null, argv.acs);
+  getPostURL:           function (audience, authnRequestDom, req, callback) {
+                          return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ? 
+                            req.authnRequest.acsUrl : 
+                            argv.acsUrl);
                         }
 }
-// idp handler
-var idpHandler = samlp.auth(idpOptions);
 
-// globals
-var app    = express();
-var server = http.createServer(app);
+/**
+ * App Environment
+ */
 
-// environment
 app.set('port', process.env.PORT || argv.port);
 app.set('views', path.join(__dirname, 'views'));
-// view engine
-app.engine('hbs', hbsEngine({extname:'hbs', defaultLayout:'main.hbs'}));
+
+/**
+ * View Engine
+ */
+
 app.set('view engine', 'hbs');
-// middleware
-app.use(favicon());
+app.set('view options', { layout: 'layout' })
+app.engine('handlebars', hbs.__express);
+
+// Register Helpers
+hbs.registerHelper('extend', function(name, context) {
+    var block = blocks[name];
+    if (!block) {
+        block = blocks[name] = [];
+    }
+
+    block.push(context.fn(this));
+});
+
+hbs.registerHelper('block', function(name) {
+    var val = (blocks[name] || []).join('\n');
+    // clear the block
+    blocks[name] = [];
+    return val;
+});
+
+hbs.registerHelper('serialize', function(context) {
+  return new Buffer(JSON.stringify(context)).toString('base64');
+});
+
+/**
+ * Middleware
+ */
+
 app.use(logger(':date> :method :url - {:referrer} => :status (:response-time ms)'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({extended: true})) 
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// add default user to request
-app.use(function(req,res,next){
-    req.user = config.user;
+/**
+ * View Handlers
+ */
+
+
+var showUser = function (req, res, next) {
+  res.render('user', {
+    user: req.user,
+    authnRequest: req.authnRequest,
+    idp: req.idp.options
+  });
+}
+
+
+/**
+ * Routes
+ */
+
+app.use(function(req, res, next){
+  req.user = config.user;
+  req.idp = { options: idpOptions };
+
+  samlp.parseRequest(req, function(err, data) {
+    if (data) {
+      req.authnRequest = {
+        relayState: req.query.RelayState || req.body.RelayState,
+        id: data.id,
+        issuer: data.issuer,
+        acsUrl: data.assertionConsumerServiceURL
+      };
+    }
     next();
+  });
 });
 
 
-// add routes
-app.get(['/', '/idp'], function(req, res) {
-    var user = req.user;
-    res.render('user', {
-        "user" : user
-    });
-});
+app.get(['/', '/idp'], showUser);
 
-app.post(['/', '/idp'], function(req, res) {
+app.post(['/', '/idp'], function(req, res, next) {
+  
+  var idpOptions = extend({}, req.idp.options);
+
   if (req.body.SAMLRequest) {
-    var user = req.user;
-    res.render('user', {
-        "user" : user
-    });
+    showUser(req, res, next);
   } else {
-    req.user.id = req.body.login;
-    req.user.firstName = req.body.firstName;
-    req.user.lastName = req.body.lastName;
-    req.user.email = req.body.email;
-    idpHandler(req, res);
+    // Form POST
+    Object.keys(req.body).forEach(function(key) {
+      var buffer;
+      if (key === '_authnRequest') {
+        buffer = new Buffer(req.body[key], 'base64');
+        req.authnRequest = JSON.parse(buffer.toString('utf8'));
+
+        // Apply AuthnRequest Params
+        idpOptions.inReponseTo = req.authnRequest.id;
+        if (req.authnRequest.acsUrl) {
+          idpOptions.acsUrl = req.authnRequest.acsUrl;
+          idpOptions.recipient = req.authnRequest.acsUrl;
+          idpOptions.destination = req.authnRequest.acsUrl;
+        }
+        if (req.authnRequest.relayState) {
+          idpOptions.RelayState = req.authnRequest.relayState;
+        }
+      } else {
+        req.user[key] = req.body[key];
+      }
+    });
+
+    // Keep calm and Single Sign On
+    samlp.auth(idpOptions)(req, res);
   }
 });
 
@@ -135,6 +220,9 @@ app.use(function(err, req, res, next) {
   });
 });
 
+/**
+ * App Start
+ */
 
 console.log('starting server...');
 server.listen(app.get('port'), function() {

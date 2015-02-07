@@ -3,16 +3,17 @@ Simple SAMLP Identity Provider for node.js.
 ## Installation
 
     npm install
+    bower install
 
 ## Introduction
 
-This app provides a default identity provider to test SAML 2.0 Service Providers
+This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Providers (SPs) with the [SAML 2.0 Web Browser SSO Profile](http://en.wikipedia.org/wiki/SAML_2.0#Web_Browser_SSO_Profile)
 
-> SAML attribute mappings currently default to [Okta SP (Inbound SAML)](www.okta.com)
+> SAML attribute mappings currently default to [Okta SP (Inbound SAML)](developer.okta.com)
 
 ## Usage
 
-	node app.js --acs {POST URL } --aud {audience}
+	node app.js --acs {POST URL} --aud {audience}
 
 ### Example
 
@@ -26,8 +27,11 @@ Attribute     | Mapping
 ------------- | --------------------------------------------------------
 NameID Format | `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`
 First Name    | 'FirstName'
-Last Name     | 'Last Name'
-Email         | 'Email' 
+Last Name     | 'LastName'
+Display Name  | 'Display Name'
+Email         | 'Email'
+MobilePhone   | 'MobilePhone'
+Groups		  | 'Groups'
 
 
 > The default user profile is specified in `config.js`   

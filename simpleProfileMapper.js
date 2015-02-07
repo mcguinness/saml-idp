@@ -3,22 +3,28 @@ function SimpleProfileMapper (pu) {
     return new SimpleProfileMapper(pu);
   }
   this._pu = pu;
-  this.nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
 }
 
 SimpleProfileMapper.prototype.getClaims = function() {
   var claims = {};
 
-  claims[this.nameIdFormat]  = this._pu.id;
-  claims['Email']      = this._pu.email;
-  claims['FirstName']  = this._pu.firstName
-  claims['LastName']    = this._pu.lastName;
- 
+  claims['Email']         = this._pu.email;
+  claims['FirstName']     = this._pu.firstName
+  claims['LastName']      = this._pu.lastName;
+  claims['DisplayName']   = this._pu.displayName;
+  claims['MobilePhone']   = this._pu.mobilePhone;
+  if (this._pu.groups) {
+    claims['Groups']      = this._pu.groups.split(',');
+  }
+  
   return claims;
 };
 
 SimpleProfileMapper.prototype.getNameIdentifier = function() {
-  return { nameIdentifier: this.getClaims()[this.nameIdFormat] };
+  return { 
+    nameIdentifier: this._pu.userName,
+    nameIdentifierFormat: this._pu.nameIdFormat,
+  };
 };
 
 
@@ -37,6 +43,21 @@ SimpleProfileMapper.prototype.metadata = [ {
   optional: true,
   displayName: 'Last Name',
   description: 'The surname of the user'
+}, {
+  id: "DisplayName",
+  optional: true,
+  displayName: 'Display Name',
+  description: 'The display name of the user'
+}, {
+  id: "MobilePhone",
+  optional: true,
+  displayName: 'Mobile Phone',
+  description: 'The mobile phone of the user'
+}, {
+  id: "Groups",
+  optional: true,
+  displayName: 'Groups',
+  description: 'Group memberships of the user'
 }];
 
 module.exports = SimpleProfileMapper;
