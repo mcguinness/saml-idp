@@ -14,6 +14,7 @@ var express             = require('express'),
     cookieParser        = require('cookie-parser'),
     bodyParser          = require('body-parser'),
     samlp               = require('samlp'),
+    yargs               = require('yargs'),
     config              = require('./config.js'),
     SimpleProfileMapper = require('./simpleProfileMapper.js');
 
@@ -29,30 +30,103 @@ var blocks = {};
  * Arguments
  */
 
-var argv = require('yargs')
-    .usage('Simple IdP\nUsage: $0')
-    .example('$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', 
-        '\n\nStart IdP web server minting SAML assertions for service provider ACS URL and audience')
-    .default({ p: 7000, iss: 'urn:example:idp', disableRequestAcsUrl: false})
-    .alias('p', 'port')
-    .describe('port', 'Web server listener port')
-    .alias('iss', 'issuer')
-    .describe('issuer', 'IdP Issuer URI')
-    .alias('acs', 'acsUrl')
-    .describe('acsUrl', 'SP Assertion Consumer URL')
-    .alias('aud', 'audience')
-    .describe('audience', 'SAML SP Audience')
-    .alias('rs', 'relayState')
-    .describe('relayState', 'Default SAML RelayState for AuthnResponse')
-    .boolean('disableRequestAcsUrl')
-    .alias('static', 'disableRequestAcsUrl')
-    .describe('disableRequestAcsUrl', 'Disables ability for AuthnRequest to specify Assertion Consumer URL')
-    .demand('aud', 'acs')
-    .argv
-;
-
-console.log();
 console.log('loading configuration...');
+var argv = yargs
+  .usage('\nSimple IdP for SAML 2.0 WebSSO Profile\n\n' +
+      'Launches Web Server that mints SAML assertions for a Service Provider (SP)\n\n' +
+      'Usage:\n\t$0 -acs {url} -aud {uri}', {
+    port: {
+      description: 'Web server listener port',
+      required: false,
+      alias: 'i',
+      default: 7000
+    },
+    issuer: {
+      description: 'IdP Issuer URI',
+      required: true,
+      alias: 'iss',
+      default: 'urn:example:idp'
+    },
+    acsUrl: {
+      description: 'SP Assertion Consumer URL',
+      required: true,
+      alias: 'acs'
+    },
+    audience: {
+      description: 'SP Audience URI',
+      required: true,
+      alias: 'aud'
+    },
+    relayState: {
+      description: 'Default SAML RelayState for SAMLResponse',
+      required: false,
+      alias: 'rs'
+    },
+    disableRequestAcsUrl: {
+      description: 'Disables ability for SP AuthnRequest to specify Assertion Consumer URL',
+      required: false,
+      boolean: true,
+      alias: 'static',
+      default: false
+    },
+    encryptionCert: {
+      description: 'SP Certificate (pem) for Assertion Encryption',
+      required: false,
+      string: true,
+      alias: 'encCert'
+    },
+    encryptionPublicKey: {
+      description: 'SP RSA Public Key (pem) for Assertion Encryption ' +
+      '(e.g. openssl x509 -pubkey -noout -in sp-cert.pem)',
+      required: false,
+      string: true,
+      alias: 'encKey'
+    }       
+  })
+  .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
+  .check(function(argv, aliases) {
+    var hasFormat = function(file, header) {
+      var data = fs.readFileSync(file);
+      var re = new RegExp('-----BEGIN ' + header.toUpperCase() + '-----[^-]*-----END ' + header.toUpperCase() + '-----');
+      return re.test(data);
+    }
+
+    if (argv.encryptionCert) {
+      if (!fs.existsSync(argv.encryptionCert)) {
+        return 'Encryption cert "' + argv.encryptionCert + '" is not a valid file path';
+      }
+
+      if (!hasFormat(argv.encryptionCert, 'CERTIFICATE')) {
+        return 'Encryption cert "' + argv.encryptionCert + '" is not a valid PEM certificate';
+      }
+
+      if (argv.encryptionPublicKey === undefined) {
+        return 'encryptionPublicKey argument is also required for assertion encryption';
+      }
+    }
+
+    if (argv.encryptionPublicKey) {;
+      if (!fs.existsSync(argv.encryptionPublicKey)) {
+        return 'Encryption public key "' + argv.encryptionPublicKey + '" is not a valid file path';
+      }
+
+      if (!hasFormat(argv.encryptionPublicKey, 'PUBLIC KEY')) {
+        return 'Encryption cert "' + argv.encryptionPublicKey + '" is not a valid PEM certificate';
+      }
+
+      if (argv.encryptionCert === undefined) {
+        return 'encryptionCert argument is also required for assertion encryption';
+      }
+
+      // Set flag since both file args are present
+      argv.encryptAssertion = true;
+    }
+    return true;
+  })
+  .argv;
+
+
+
 console.log();
 console.log('Listener Port:\n\t' + argv.port);
 console.log('IdP Issuer URI:\n\t' + argv.issuer);
@@ -60,6 +134,7 @@ console.log('SP ACS URL:\n\t' + argv.acsUrl);
 console.log('SP Audience URI:\n\t' + argv.audience);
 console.log('Default RelayState:\n\t' + argv.relayState);
 console.log('Allow SP to Specify ACS URLs:\n\t' + !argv.disableRequestAcsUrl);
+console.log('Assertion Encryption:\n\t' + argv.encryptAssertion);
 console.log();
 
 /**
@@ -79,6 +154,7 @@ var idpOptions = {
   digestAlgorithm:      'sha1',
   signatureAlgorithm:   'rsa-sha1',
   signResponse:         false,
+  encryptAssertion:     argv.encryptAssertion,
   lifetimeInSeconds:    3600,
   authnContextClassRef: 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
   profileMapper:        SimpleProfileMapper,
@@ -89,6 +165,12 @@ var idpOptions = {
                             argv.acsUrl);
                         }
 }
+
+if (argv.encryptAssertion) {
+  idpOptions.encryptionCert = fs.readFileSync(argv.encryptionCert);
+  idpOptions.encryptionPublicKey = fs.readFileSync(argv.encryptionPublicKey);
+}
+
 
 /**
  * App Environment
@@ -213,6 +295,11 @@ app.post(['/', '/idp'], function(req, res, next) {
         req.user[key] = req.body[key];
       }
     });
+
+    if (!authOptions.encryptAssertion) {
+      delete authOptions.encryptionCert;
+      delete authOptions.encryptionPublicKey;
+    }
 
     // Keep calm and Single Sign On
     console.log('Sending Assertion with Options => \n', authOptions);

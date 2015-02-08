@@ -9,7 +9,7 @@ Simple SAMLP Identity Provider for node.js.
 
 This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Providers (SPs) with the [SAML 2.0 Web Browser SSO Profile](http://en.wikipedia.org/wiki/SAML_2.0#Web_Browser_SSO_Profile)
 
-> SAML attribute mappings currently default to [Okta SP (Inbound SAML)](developer.okta.com)
+> SAML attribute mappings currently default to [Okta (Inbound SAML)](developer.okta.com)
 
 ## Usage
 
@@ -23,15 +23,32 @@ This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Prov
 
 SAML Assertion statement mappings are configured in `simpleProfileMapper.js`
 
-Attribute     | Mapping
+Property      | SAML Attribute Name
 ------------- | --------------------------------------------------------
-NameID Format | `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`
-First Name    | 'FirstName'
-Last Name     | 'LastName'
-Display Name  | 'Display Name'
-Email         | 'Email'
-MobilePhone   | 'MobilePhone'
-Groups		  | 'Groups'
+userName      | Subject NameID
+nameIdFormat  | Subject NameID Format
+firstName     | 'FirstName'
+lastName      | 'LastName'
+displayName   | 'DisplayName'
+email         | 'Email'
+mobilePhone   | 'MobilePhone'
+groups		  | 'Groups'
 
 
-> The default user profile is specified in `config.js`   
+> The default user profile is specified in `config.js` 
+
+## Assertion Encryption
+
+Encrypted assertions require both a certificate and public key from the target service provider in the PEM format (base64 encoding of `.der`, `.cer`, `.cert`, `.crt`).  You can convert certificate formats with `openssl`
+
+#### DER to PEM
+
+`openssl x509 -inform der -in to-convert.der -out converted.pem`
+
+> The following formats or extensions should be convertible to the pem format: `.der`, `.cer`, `.cert`, `.crt
+
+#### PEM Certificate to Public Key
+
+PEM files that contain the header `-----BEGIN CERTIFICATE-----` can also be converted to  just the public key which is a file with just the `-----BEGIN PUBLIC KEY-----` header
+
+`openssl x509 -pubkey -noout -in cert.pem > pub.key`
