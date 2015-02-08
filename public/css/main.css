@@ -6,7 +6,6 @@
 	overflow-wrap: break-word;
 }
 
-
 /**
  * user
  */
@@ -15,6 +14,13 @@
 	background-color: #597ea2;
 }
 
+/**
+ * settings
+ */
+
+.form-settings .control-label-break {
+  padding-top: 1px;
+}
 
 /**
  * bootstrap-tagsinput

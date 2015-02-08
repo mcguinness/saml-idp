@@ -26,17 +26,16 @@
           </div>
         </div>
 
-        {{#if authnRequest.relayState}}
+        {{#if authnRequest.destination}}
 
         <div class="form-group">
-          <label for="relayState" class="col-sm-3 control-label">Relay State</label>
+          <label for="destination" class="col-sm-3 control-label">Destination</label>
           <div class="col-sm-9">
-            <p id="relayState" class="form-control-static">{{authnRequest.relayState}}</p>
+            <p id="destination" class="form-control-static">{{authnRequest.destination}}</p>
           </div>
         </div>
 
         {{/if}}
-
 
         {{#if authnRequest.acsUrl}}
 
@@ -47,7 +46,29 @@
           </div>
         </div>
 
+        {{/if}}        
+
+        {{#if authnRequest.forceAuthn}}
+
+        <div class="form-group">
+          <label for="forceAuthn" class="col-sm-3 control-label">ForceAuthn</label>
+          <div class="col-sm-9">
+            <p id="forceAuthn" class="form-control-static">{{authnRequest.forceAuthn ? 'TRUE' : 'FALSE'}}</p>
+          </div>
+        </div>
+
         {{/if}}
+
+        {{#if authnRequest.relayState}}
+
+        <div class="form-group">
+          <label for="relayState" class="col-sm-3 control-label">Relay State</label>
+          <div class="col-sm-9">
+            <p id="relayState" class="form-control-static">{{authnRequest.relayState}}</p>
+          </div>
+        </div>
+
+        {{/if}}             
 
       </form>
     </div>

@@ -33,7 +33,7 @@ var argv = require('yargs')
     .usage('Simple IdP\nUsage: $0')
     .example('$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', 
         '\n\nStart IdP web server minting SAML assertions for service provider ACS URL and audience')
-    .default({ p: 7000, iss: 'urn:example:idp'})
+    .default({ p: 7000, iss: 'urn:example:idp', disableRequestAcsUrl: false})
     .alias('p', 'port')
     .describe('port', 'Web server listener port')
     .alias('iss', 'issuer')
@@ -44,6 +44,9 @@ var argv = require('yargs')
     .describe('audience', 'SAML SP Audience')
     .alias('rs', 'relayState')
     .describe('relayState', 'Default SAML RelayState for AuthnResponse')
+    .boolean('disableRequestAcsUrl')
+    .alias('static', 'disableRequestAcsUrl')
+    .describe('disableRequestAcsUrl', 'Disables ability for AuthnRequest to specify Assertion Consumer URL')
     .demand('aud', 'acs')
     .argv
 ;
@@ -56,6 +59,7 @@ console.log('IdP Issuer URI:\n\t' + argv.issuer);
 console.log('SP ACS URL:\n\t' + argv.acsUrl);
 console.log('SP Audience URI:\n\t' + argv.audience);
 console.log('Default RelayState:\n\t' + argv.relayState);
+console.log('Allow SP to Specify ACS URLs:\n\t' + !argv.disableRequestAcsUrl);
 console.log();
 
 /**
@@ -67,13 +71,16 @@ var idpOptions = {
   cert:                 fs.readFileSync(path.join(__dirname, 'server-cert.pem')),
   key:                  fs.readFileSync(path.join(__dirname, 'server-key.pem')),
   audience:             argv.audience,
-  recipient:            argv.acsUrl, 
+  recipient:            argv.acsUrl,
   destination:          argv.acsUrl,
   acsUrl:               argv.acsUrl,
-  RelayState:           argv.relayState,       
-  digestAlgorithm:      'sha1',      
+  RelayState:           argv.relayState,
+  allowRequestAcsUrl:   !argv.disableRequestAcsUrl,
+  digestAlgorithm:      'sha1',
   signatureAlgorithm:   'rsa-sha1',
-  signReponse:          true,
+  signResponse:         false,
+  lifetimeInSeconds:    3600,
+  authnContextClassRef: 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
   profileMapper:        SimpleProfileMapper,
   getUserFromRequest:   function(req) { return req.user; },
   getPostURL:           function (audience, authnRequestDom, req, callback) {
@@ -114,6 +121,14 @@ hbs.registerHelper('block', function(name) {
     blocks[name] = [];
     return val;
 });
+
+
+hbs.registerHelper('select', function(selected, options) {
+    return options.fn(this).replace(
+        new RegExp(' value=\"' + selected + '\"'),
+        '$& selected="selected"');
+});
+
 
 hbs.registerHelper('serialize', function(context) {
   return new Buffer(JSON.stringify(context)).toString('base64');
@@ -157,8 +172,11 @@ app.use(function(req, res, next){
         relayState: req.query.RelayState || req.body.RelayState,
         id: data.id,
         issuer: data.issuer,
-        acsUrl: data.assertionConsumerServiceURL
+        destination: data.destination,
+        acsUrl: data.assertionConsumerServiceURL,
+        forceAuthn: data.forceAuthn
       };
+      console.log('Received AuthnRequest => \n', req.authnRequest);
     }
     next();
   });
@@ -169,7 +187,7 @@ app.get(['/', '/idp'], showUser);
 
 app.post(['/', '/idp'], function(req, res, next) {
   
-  var idpOptions = extend({}, req.idp.options);
+  var authOptions = extend({}, req.idp.options);
 
   if (req.body.SAMLRequest) {
     showUser(req, res, next);
@@ -182,14 +200,14 @@ app.post(['/', '/idp'], function(req, res, next) {
         req.authnRequest = JSON.parse(buffer.toString('utf8'));
 
         // Apply AuthnRequest Params
-        idpOptions.inReponseTo = req.authnRequest.id;
-        if (req.authnRequest.acsUrl) {
-          idpOptions.acsUrl = req.authnRequest.acsUrl;
-          idpOptions.recipient = req.authnRequest.acsUrl;
-          idpOptions.destination = req.authnRequest.acsUrl;
+        authOptions.inReponseTo = req.authnRequest.id;
+        if (req.idp.options.allowRequestAcsUrl && req.authnRequest.acsUrl) {
+          authOptions.acsUrl = req.authnRequest.acsUrl;
+          authOptions.recipient = req.authnRequest.acsUrl;
+          authOptions.destination = req.authnRequest.acsUrl;
         }
         if (req.authnRequest.relayState) {
-          idpOptions.RelayState = req.authnRequest.relayState;
+          authOptions.RelayState = req.authnRequest.relayState;
         }
       } else {
         req.user[key] = req.body[key];
@@ -197,12 +215,43 @@ app.post(['/', '/idp'], function(req, res, next) {
     });
 
     // Keep calm and Single Sign On
-    samlp.auth(idpOptions)(req, res);
+    console.log('Sending Assertion with Options => \n', authOptions);
+    samlp.auth(authOptions)(req, res);
   }
 });
 
-app.get('/metadata', samlp.metadata(idpOptions));
+app.get('/metadata', function(req, res, next) {
+  samlp.metadata(req.idp.options)(req, res);
+});
 
+app.get(['/settings'], function(req, res, next) {
+  res.render('settings', {
+    idp: req.idp.options
+  });
+});
+
+app.post(['/settings'], function(req, res, next) {
+  Object.keys(req.body).forEach(function(key) {
+    switch(req.body[key].toLowerCase()){
+      case "true": case "yes": case "1":
+        req.idp.options[key] = true;
+        break;
+      case "false": case "no": case "0":
+        req.idp.options[key] = false;
+        break;
+      default:
+        req.idp.options[key] = req.body[key];
+        break;
+    }
+
+    if (req.body[key].match(/^\d+$/)) {
+      req.idp.options[key] = parseInt(req.body[key], '10');
+    }
+  });
+
+  console.log('Updated IdP Configuration => \n', req.idp.options);
+  res.redirect('/');
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
