@@ -30,6 +30,7 @@ var blocks = {};
  * Arguments
  */
 
+console.log();
 console.log('loading configuration...');
 var argv = yargs
   .usage('\nSimple IdP for SAML 2.0 WebSSO Profile\n\n' +
@@ -37,8 +38,8 @@ var argv = yargs
       'Usage:\n\t$0 -acs {url} -aud {uri}', {
     port: {
       description: 'Web server listener port',
-      required: false,
-      alias: 'i',
+      required: true,
+      alias: 'p',
       default: 7000
     },
     issuer: {
@@ -142,28 +143,30 @@ console.log();
  */
 
 var idpOptions = {
-  issuer:               argv.issuer,
-  cert:                 fs.readFileSync(path.join(__dirname, 'server-cert.pem')),
-  key:                  fs.readFileSync(path.join(__dirname, 'server-key.pem')),
-  audience:             argv.audience,
-  recipient:            argv.acsUrl,
-  destination:          argv.acsUrl,
-  acsUrl:               argv.acsUrl,
-  RelayState:           argv.relayState,
-  allowRequestAcsUrl:   !argv.disableRequestAcsUrl,
-  digestAlgorithm:      'sha1',
-  signatureAlgorithm:   'rsa-sha1',
-  signResponse:         false,
-  encryptAssertion:     argv.encryptAssertion,
-  lifetimeInSeconds:    3600,
-  authnContextClassRef: 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
-  profileMapper:        SimpleProfileMapper,
-  getUserFromRequest:   function(req) { return req.user; },
-  getPostURL:           function (audience, authnRequestDom, req, callback) {
-                          return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ? 
-                            req.authnRequest.acsUrl : 
-                            argv.acsUrl);
-                        }
+  issuer:                 argv.issuer,
+  cert:                   fs.readFileSync(path.join(__dirname, 'server-cert.pem')),
+  key:                    fs.readFileSync(path.join(__dirname, 'server-key.pem')),
+  audience:               argv.audience,
+  recipient:              argv.acsUrl,
+  destination:            argv.acsUrl,
+  acsUrl:                 argv.acsUrl,
+  RelayState:             argv.relayState,
+  allowRequestAcsUrl:     !argv.disableRequestAcsUrl,
+  digestAlgorithm:        'sha1',
+  signatureAlgorithm:     'rsa-sha1',
+  signResponse:           false,
+  encryptAssertion:       argv.encryptAssertion,
+  encryptionAlgorithm:    'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
+  keyEncryptionAlgorighm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
+  lifetimeInSeconds:      3600,
+  authnContextClassRef:   'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+  profileMapper:          SimpleProfileMapper,
+  getUserFromRequest:     function(req) { return req.user; },
+  getPostURL:             function (audience, authnRequestDom, req, callback) {
+                            return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ?
+                              req.authnRequest.acsUrl :
+                              argv.acsUrl);
+                          }
 }
 
 if (argv.encryptAssertion) {
