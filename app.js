@@ -7,6 +7,7 @@ var express             = require('express'),
     os                  = require('os'),
     fs                  = require('fs'),
     http                = require('http'),
+    https               = require('https'),
     path                = require('path'),
     extend              = require('extend'),
     hbs                 = require('hbs'),
@@ -22,9 +23,10 @@ var express             = require('express'),
  * Globals
  */
 
-var app    = express();
-var server = http.createServer(app);
-var blocks = {};
+var app                 = express(),
+    blocks              = {},
+    httpServer;
+
 
 /**
  * Arguments
@@ -37,7 +39,7 @@ var argv = yargs
       'Launches Web Server that mints SAML assertions for a Service Provider (SP)\n\n' +
       'Usage:\n\t$0 -acs {url} -aud {uri}', {
     port: {
-      description: 'Web server listener port',
+      description: 'Web Server Listener Port',
       required: true,
       alias: 'p',
       default: 7000
@@ -82,9 +84,41 @@ var argv = yargs
       required: false,
       string: true,
       alias: 'encKey'
-    }       
+    },
+    httpsPrivateKey: {
+      description: 'Web Server TLS/SSL Private Key (pem)',
+      required: false,
+      string: true,
+    },
+    httpsCert: {
+      description: 'Web Server TLS/SSL Certificate (pem)',
+      required: false,
+      string: true,
+    },
+    https: {
+      description: 'Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)',
+      required: true,
+      boolean: true,
+      default: false
+    }
   })
   .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
+  .check(function(argv, aliases) {
+    if (argv.https) {
+
+      if (!fs.existsSync(argv.httpsPrivateKey)) {
+        return 'HTTPS Private Key "' + argv.httpsPrivateKey + '" is not a valid file path';
+      }
+
+      if (!fs.existsSync(argv.httpsCert)) {
+        return 'HTTPS Certificate "' + argv.httpsCert + '" is not a valid file path';
+      }
+
+      argv.httpsPrivateKey = fs.readFileSync(argv.httpsPrivateKey).toString();
+      argv.httpsCert = fs.readFileSync(argv.httpsCert).toString();
+    }
+
+  })
   .check(function(argv, aliases) {
     var hasFormat = function(file, header) {
       var data = fs.readFileSync(file);
@@ -130,6 +164,7 @@ var argv = yargs
 
 console.log();
 console.log('Listener Port:\n\t' + argv.port);
+console.log('HTTPS Listener:\n\t' + argv.https);
 console.log('IdP Issuer URI:\n\t' + argv.issuer);
 console.log('SP ACS URL:\n\t' + argv.acsUrl);
 console.log('SP Audience URI:\n\t' + argv.audience);
@@ -360,16 +395,22 @@ app.use(function(err, req, res, next) {
 });
 
 /**
- * App Start
+ * Start IdP Web Server
  */
 
 console.log('starting server...');
-server.listen(app.get('port'), function() {
-  var address  = server.address(),
+httpServer = argv.https ?
+  https.createServer({ key: argv.httpsPrivateKey, cert: argv.httpsCert }, app) :
+  http.createServer(app);
+
+
+httpServer.listen(app.get('port'), function() {
+  var scheme   = argv.https ? 'https' : 'http',
+      address  = httpServer.address(),
       hostname = os.hostname();
       baseUrl  = address.address === '0.0.0.0' ? 
-        'http://' + hostname + ':' + address.port :
-        'http://localhost:' + address.port
+        scheme + '://' + hostname + ':' + address.port :
+        scheme + '://localhost:' + address.port;
   
   console.log('listening on port: ' + app.get('port'));
   console.log();
