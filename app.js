@@ -117,7 +117,6 @@ var argv = yargs
       argv.httpsPrivateKey = fs.readFileSync(argv.httpsPrivateKey).toString();
       argv.httpsCert = fs.readFileSync(argv.httpsCert).toString();
     }
-
   })
   .check(function(argv, aliases) {
     var hasFormat = function(file, header) {
@@ -179,8 +178,8 @@ console.log();
 
 var idpOptions = {
   issuer:                 argv.issuer,
-  cert:                   fs.readFileSync(path.join(__dirname, 'server-cert.pem')),
-  key:                    fs.readFileSync(path.join(__dirname, 'server-key.pem')),
+  cert:                   fs.readFileSync(path.join(__dirname, 'idp-public-cert.pem')),
+  key:                    fs.readFileSync(path.join(__dirname, 'idp-private-key.pem')),
   audience:               argv.audience,
   recipient:              argv.acsUrl,
   destination:            argv.acsUrl,
