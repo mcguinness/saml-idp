@@ -22,8 +22,11 @@ SimpleProfileMapper.prototype.getClaims = function() {
 
 SimpleProfileMapper.prototype.getNameIdentifier = function() {
   return { 
-    nameIdentifier: this._pu.userName,
-    nameIdentifierFormat: this._pu.nameIdFormat,
+    nameIdentifier:                  this._pu.userName,
+    nameIdentifierFormat:            this._pu.nameIdFormat,
+    nameIdentifierNameQualifier:     this._pu.nameIdNameQualifier,
+    nameIdentifierSPNameQualifier:   this._pu.nameIdSPNameQualifier,
+    nameIdentifierSPProvidedID:      this._pu.nameIdSPProvidedID
   };
 };
 

@@ -90,22 +90,52 @@
           <label for="userName" class="col-sm-3 control-label">Subject NameID</label>
           <div class="col-sm-9">
             <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
+            <p class="help-block">
+              <a data-toggle="collapse" href="#collapseNameId" aria-expanded="false" aria-controls="collapseNameId">
+                 <i class="fa fa-plus"> More Options</i>
+              </a>
+            </p>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
-          <div class="col-sm-9">
-            <select id="nameIdFormat" class="form-control" name="nameIdFormat">
-              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
-              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
-              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
-              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
-              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
-              <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
-              <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
-            </select>
+        <div class="collapse" id="collapseNameId">
+
+          <div class="form-group">
+            <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
+            <div class="col-sm-9">
+              <select id="nameIdFormat" class="form-control" name="nameIdFormat">
+                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
+                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
+                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
+                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
+                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
+                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
+                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
+              </select>
+            </div>
           </div>
+
+          <div class="form-group">
+            <label for="nameIdNameQualifier" class="col-md-3 control-label">Name Qualifier</label>
+            <div class="col-sm-9">
+              <input id="nameIdNameQualifier" class="form-control" name="nameIdNameQualifier" type="text" required="" value="{{user.nameIdNameQualifier}}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="nameIdSPNameQualifier" class="col-md-3 control-label">Service Provider Name Qualifier</label>
+            <div class="col-sm-9">
+              <input id="nameIdSPNameQualifier" class="form-control" name="nameIdSPNameQualifier" type="text" required="" value="{{user.nameIdSPNameQualifier}}">
+            </div>
+          </div>
+
+           <div class="form-group">
+            <label for="nameIdSPProvidedID" class="col-md-3 control-label">Service Provider Provided ID</label>
+            <div class="col-sm-9">
+              <input id="nameIdSPProvidedID" class="form-control" name="nameIdSPProvidedID" type="text" required="" value="{{user.nameIdSPProvidedID}}">
+            </div>
+          </div>
+
         </div>
 
         <div class="form-group">
