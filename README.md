@@ -6,8 +6,9 @@ This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Prov
 
 ## Installation
 
-    npm install
-    bower install
+1. `npm install`
+2. `bower install`
+3. `openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300`
     
 > [Bower](http://bower.io/), a front-end package manager, can be installed with `npm install -g bower`    
 
@@ -58,21 +59,9 @@ HTTP-POST     | `http://localhost:port`
 
 ## Signing Certificate
 
-A self-signed 2048-bit certificate is already generated and part of this project.
+You must generate a self-signed certificate for the IdP.
 
-Parameter              |                                                             |
----------------------- | ------------------------------------------------------------|
-Public Key Certificate | `idp-public-cert.pem`
-Format                 | `PEM`
-SHA1 Fingerprint       | `84:EA:56:58:95:24:AE:57:88:9D:B3:63:ED:65:30:1F:E2:5C:5B:B8`
-
-> **DO NOT USE** `idp-private-key.pem` in your SP.  This is the private key used by the IdP to sign SAML messages
-> 
-> **DO NOT USE** this certificate on a production system!  [Generate your own keypair](https://devcenter.heroku.com/articles/ssl-certificate-self) and replace this test key-pair if you want to use this sample against a production system.
-
-You can use openssl to view additional details on the certificate 
-
-`openssl x509 -in idp-public-cert.pem -text -noout -fingerprint`
+    openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300
 
 ## SAML Metadata
 

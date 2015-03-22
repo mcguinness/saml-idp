@@ -44,6 +44,16 @@ var argv = yargs
       alias: 'p',
       default: 7000
     },
+    cert: {
+      description: 'IdP Signature PublicKey Certificate',
+      required: true,
+      default: './idp-public-cert.pem'
+    },
+    key: {
+      description: 'IdP Signature PrivateKey Certificate',
+      required: true,
+      default: './idp-private-key.pem'
+    },
     issuer: {
       description: 'IdP Issuer URI',
       required: true,
@@ -103,6 +113,22 @@ var argv = yargs
     }
   })
   .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
+  .check(function(argv, aliases) {
+    if (!fs.existsSync(argv.cert)) {
+      return 'IdP Signature PublicKey Certificate "' + argv.cert + '" is not a valid file path.\n' +
+        "Please generate a key-pair for the IdP using the following openssl command:\n" +
+        "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
+    }
+
+    if (!fs.existsSync(argv.key)) {
+      return 'IdP Signature PrivateKey Certificate "' + argv.key + '" is not a valid file path.\n' +
+        "Please generate a key-pair for the IdP using the following openssl command:\n" +
+        "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
+    }
+
+    argv.cert = fs.readFileSync(argv.cert);
+    argv.key = fs.readFileSync(argv.key);
+  })
   .check(function(argv, aliases) {
     if (argv.https) {
 
