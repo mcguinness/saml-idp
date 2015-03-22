@@ -7,16 +7,16 @@
 }
 
 /**
- * user
+ * user view
  */
+
+.form-profile button {
+  margin-left: 10px;
+}
 
 .bootstrap-tagsinput .label-info {
 	background-color: #597ea2;
 }
-
-/**
- * settings
- */
 
 .form-settings .control-label-break {
   padding-top: 1px;

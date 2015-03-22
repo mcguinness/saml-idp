@@ -6,17 +6,15 @@ function SimpleProfileMapper (pu) {
 }
 
 SimpleProfileMapper.prototype.getClaims = function() {
+  var self = this;
   var claims = {};
 
-  claims['Email']         = this._pu.email;
-  claims['FirstName']     = this._pu.firstName
-  claims['LastName']      = this._pu.lastName;
-  claims['DisplayName']   = this._pu.displayName;
-  claims['MobilePhone']   = this._pu.mobilePhone;
-  if (this._pu.groups) {
-    claims['Groups']      = this._pu.groups.split(',');
-  }
-  
+  SimpleProfileMapper.prototype.metadata.forEach(function(entry) {
+    claims[entry.id] = entry.multiValue ?
+      self._pu[entry.id].split(',') :
+      self._pu[entry.id];
+  });
+
   return claims;
 };
 
@@ -32,35 +30,41 @@ SimpleProfileMapper.prototype.getNameIdentifier = function() {
 
 
 SimpleProfileMapper.prototype.metadata = [ {
-  id: "Email",
-  optional: true,
-  displayName: 'E-Mail Address',
-  description: 'The e-mail address of the user'
-}, {
-  id: "FirstName",
-  optional: true,
+  id: "firstName",
+  optional: false,
   displayName: 'First Name',
-  description: 'The given name of the user'
+  description: 'The given name of the user',
+  multiValue: false
 }, {
-  id: "LastName",
-  optional: true,
+  id: "lastName",
+  optional: false,
   displayName: 'Last Name',
-  description: 'The surname of the user'
+  description: 'The surname of the user',
+  multiValue: false
 }, {
-  id: "DisplayName",
+  id: "displayName",
   optional: true,
   displayName: 'Display Name',
-  description: 'The display name of the user'
+  description: 'The display name of the user',
+  multiValue: false
 }, {
-  id: "MobilePhone",
+  id: "email",
+  optional: false,
+  displayName: 'E-Mail Address',
+  description: 'The e-mail address of the user',
+  multiValue: false
+},{
+  id: "mobilePhone",
   optional: true,
   displayName: 'Mobile Phone',
-  description: 'The mobile phone of the user'
+  description: 'The mobile phone of the user',
+  multiValue: false
 }, {
-  id: "Groups",
+  id: "groups",
   optional: true,
   displayName: 'Groups',
-  description: 'Group memberships of the user'
+  description: 'Group memberships of the user',
+  multiValue: true
 }];
 
 module.exports = SimpleProfileMapper;

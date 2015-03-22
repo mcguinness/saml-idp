@@ -40,8 +40,32 @@
   </body>
 
   <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="/bower_components/jquery-validation/dist/jquery.validate.min.js"></script>
   <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="/bower_components/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js"></script>
+  <script src="/bower_components/underscore/underscore.js"></script>
+
+  <script>
+  $(document).ready(function() {
+    jQuery.validator.setDefaults({
+      errorPlacement: function(error, element) {
+        if(element.parent().hasClass('input-prepend') || element.parent().hasClass('input-append')) {
+          error.insertAfter(element.parent());
+        } else {
+          error.insertAfter(element);
+        }
+      },
+      errorElement: "span",
+      errorClass: "help-block",
+      highlight: function(element) {
+        $(element).closest('.form-group').addClass('has-error');
+      },
+      success: function(element) {
+        $(element).closest('.form-group').removeClass('has-error');
+      }
+    });
+  });
+  </script>
 
   {{{block "scripts"}}}
 

@@ -248,6 +248,9 @@ hbs.registerHelper('select', function(selected, options) {
         '$& selected="selected"');
 });
 
+hbs.registerHelper('getProperty', function(attribute, context) {
+    return context[attribute];
+});
 
 hbs.registerHelper('serialize', function(context) {
   return new Buffer(JSON.stringify(context)).toString('base64');
@@ -267,10 +270,10 @@ app.use(express.static(path.join(__dirname, 'public')));
  * View Handlers
  */
 
-
 var showUser = function (req, res, next) {
   res.render('user', {
     user: req.user,
+    metadata: SimpleProfileMapper.prototype.metadata,
     authnRequest: req.authnRequest,
     idp: req.idp.options
   });
@@ -319,7 +322,7 @@ app.post(['/', '/idp'], function(req, res, next) {
         req.authnRequest = JSON.parse(buffer.toString('utf8'));
 
         // Apply AuthnRequest Params
-        authOptions.inReponseTo = req.authnRequest.id;
+        authOptions.inResponseTo = req.authnRequest.id;
         if (req.idp.options.allowRequestAcsUrl && req.authnRequest.acsUrl) {
           authOptions.acsUrl = req.authnRequest.acsUrl;
           authOptions.recipient = req.authnRequest.acsUrl;
@@ -346,6 +349,32 @@ app.post(['/', '/idp'], function(req, res, next) {
 
 app.get('/metadata', function(req, res, next) {
   samlp.metadata(req.idp.options)(req, res);
+});
+
+app.post('/metadata', function(req, res, next) {
+  if (req.body && req.body.attributeName && req.body.displayName) {
+    var attributeExists = false;
+    var attribute = {
+      id: req.body.attributeName,
+      optional: true,
+      displayName: req.body.displayName,
+      description: req.body.discription || '',
+      multiValue: req.body.valueType === 'multi'
+    };
+
+    SimpleProfileMapper.prototype.metadata.forEach(function(entry) {
+      if (entry.id === req.body.attributeName) {
+        entry = attribute;
+        attributeExists = true;
+      }
+    });
+
+    if (!attributeExists) {
+      SimpleProfileMapper.prototype.metadata.push(attribute);
+    }
+    console.log("Updated SAML Attribute Metadata => \n", SimpleProfileMapper.prototype.metadata)
+    res.status(200).end();
+  }
 });
 
 app.get(['/settings'], function(req, res, next) {

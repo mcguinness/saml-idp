@@ -80,109 +80,82 @@
 <div class="col-md-8 col-md-offset-2">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title"><i class="fa fa-user-plus"> SAML Assertion Attributes</i></h3>
+      <h3 class="panel-title"><i class="fa fa-user-plus"> SAML Assertion</i></h3>
     </div>
     <div class="panel-body">
 
-      <form class="form-horizontal" role="form" method="POST">
+      <form class="form-horizontal form-profile" role="form" method="POST">
 
-        <div class="form-group">
-          <label for="userName" class="col-sm-3 control-label">Subject NameID</label>
-          <div class="col-sm-9">
-            <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
-            <p class="help-block">
-              <a data-toggle="collapse" href="#collapseNameId" aria-expanded="false" aria-controls="collapseNameId">
-                 <i class="fa fa-plus"> More Options</i>
-              </a>
-            </p>
-          </div>
-        </div>
-
-        <div class="collapse" id="collapseNameId">
+        <div class='form-profile-attributes'>
 
           <div class="form-group">
-            <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
+            <label for="userName" class="col-sm-3 control-label">Subject NameID</label>
             <div class="col-sm-9">
-              <select id="nameIdFormat" class="form-control" name="nameIdFormat">
-                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
-                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
-                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
-                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
-                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
-                <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
-                <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
-              </select>
+              <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
+              <p class="help-block">
+                <a data-toggle="collapse" href="#collapseNameId" aria-expanded="false" aria-controls="collapseNameId">
+                   <i class="fa fa-plus"> More Options</i>
+                </a>
+              </p>
             </div>
           </div>
 
+          <div class="collapse" id="collapseNameId">
+
+            <div class="form-group">
+              <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
+              <div class="col-sm-9">
+                <select id="nameIdFormat" class="form-control" name="nameIdFormat">
+                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
+                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
+                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
+                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
+                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
+                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
+                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="nameIdNameQualifier" class="col-md-3 control-label">Name Qualifier</label>
+              <div class="col-sm-9">
+                <input id="nameIdNameQualifier" class="form-control" name="nameIdNameQualifier" type="text" value="{{user.nameIdNameQualifier}}">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="nameIdSPNameQualifier" class="col-md-3 control-label">Service Provider Name Qualifier</label>
+              <div class="col-sm-9">
+                <input id="nameIdSPNameQualifier" class="form-control" name="nameIdSPNameQualifier" type="text" value="{{user.nameIdSPNameQualifier}}">
+              </div>
+            </div>
+
+             <div class="form-group">
+              <label for="nameIdSPProvidedID" class="col-md-3 control-label">Service Provider Provided ID</label>
+              <div class="col-sm-9">
+                <input id="nameIdSPProvidedID" class="form-control" name="nameIdSPProvidedID" type="text" value="{{user.nameIdSPProvidedID}}">
+              </div>
+            </div>
+
+          </div>
+
+        {{#each metadata}}
           <div class="form-group">
-            <label for="nameIdNameQualifier" class="col-md-3 control-label">Name Qualifier</label>
+            <label for="{{this.id}}" class="col-sm-3 control-label">{{this.displayName}}</label>
             <div class="col-sm-9">
-              <input id="nameIdNameQualifier" class="form-control" name="nameIdNameQualifier" type="text" value="{{user.nameIdNameQualifier}}">
+              <input id="{{this.id}}" class="form-control" name="{{this.id}}" type="text" placeholder="Attribute value" {{#unless this.optional}}required=""{{/unless}} value="{{getProperty this.id ../user}}" {{#if this.multiValue}}data-role="tagsinput"{{/if}}>
             </div>
           </div>
+        {{/each}}
 
-          <div class="form-group">
-            <label for="nameIdSPNameQualifier" class="col-md-3 control-label">Service Provider Name Qualifier</label>
-            <div class="col-sm-9">
-              <input id="nameIdSPNameQualifier" class="form-control" name="nameIdSPNameQualifier" type="text" value="{{user.nameIdSPNameQualifier}}">
-            </div>
-          </div>
-
-           <div class="form-group">
-            <label for="nameIdSPProvidedID" class="col-md-3 control-label">Service Provider Provided ID</label>
-            <div class="col-sm-9">
-              <input id="nameIdSPProvidedID" class="form-control" name="nameIdSPProvidedID" type="text" value="{{user.nameIdSPProvidedID}}">
-            </div>
-          </div>
-
-        </div>
-
-        <div class="form-group">
-          <label for="firstName" class="col-sm-3 control-label">First Name</label>
-          <div class="col-sm-9">
-            <input id="firstName" class="form-control" name="firstName" type="text" required="" value="{{user.firstName}}">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="lastName" class="col-md-3 control-label">Last Name</label>
-          <div class="col-sm-9">
-            <input id="lastName" class="form-control" name="lastName" type="text" required="" value="{{user.lastName}}">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="displayName" class="col-md-3 control-label">Display Name</label>
-          <div class="col-sm-9">
-            <input id="displayName" class="form-control" name="displayName" type="text" value="{{user.displayName}}">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="email" class="col-md-3 control-label">Email</label>
-          <div class="col-md-9">
-            <input id="email" class="form-control" name="email" type="email" placeholder="user@example.com" required="" value="{{user.email}}">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="lastName" class="col-md-3 control-label">Mobile Phone</label>
-          <div class="col-sm-9">
-            <input id="mobilePhone" class="form-control" name="mobilePhone" type="tel" value="{{user.mobilePhone}}">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="groups" class="col-md-3 control-label">Groups</label>
-          <div class="col-md-9">
-            <input id="groups" class="form-control" name="groups" placeholder="Add group" value="{{user.groups}}" data-role="tagsinput">
-          </div>
-        </div>
+        </div> <!-- /.form-profile-attributes -->
 
         <div class="form-group">
           <div class="col-md-12 text-right">
-            <button type="submit" class="btn btn-default input-xlarge"><i class="fa fa-sign-in"> Sign in</i></button>
+            <button id="btn-show-attribute-modal" class="btn btn-default input-xlarge"><i class="fa fa-plus-circle"> Add attribute</i></button>
+
+            <button type="submit" class="btn btn-primary input-xlarge"><i class="fa fa-sign-in"> Sign in</i></button>
           </div>
         </div>
 
@@ -195,11 +168,86 @@
   </div>
 </div>
 
+<div id="modal-attribute" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Add Attribute</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label for="attributeName" class="col-md-3 control-label">SAML Attribute Name</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" required="" name="attributeName">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="displayName" class="col-md-3 control-label">Display Name</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" required="" name="displayName">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="description" class="col-md-3 control-label">Description</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" name="description">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="attributeValueOption" class="col-md-3 control-label">Attribute Value</label>
+            <div class="col-sm-9">
+              <label class="radio-inline">
+                <input type="radio" name="valueType" value="single" checked> Single Value
+              </label>
+              <label class="radio-inline">
+                <input type="radio" name="valueType" value="multi"> Multi-Value
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Add attribute</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
 {{#extend "scripts"}}
 <script>
   $("#nameIdFormat option").filter(function() {
       return $(this).text() == '{{user.nameIdFormat}}'; 
   }).prop('selected', true);
+
+  $('#btn-show-attribute-modal').click(function(e) {
+    e.preventDefault();
+    var $modal = $('#modal-attribute');
+    $modal.find('input[type=text]').val('');
+    $modal.modal('show');
+  });
+
+  $('#modal-attribute .btn-primary').click(function(e) {
+    e.preventDefault();
+    var $form = $("#modal-attribute form");
+    $form.validate();
+    if ($form.valid()) {
+      $.ajax({
+        type: "POST",
+        url: '/metadata',
+        data: $("#modal-attribute form").serialize(),
+        success: function() {
+          $('#modal-attribute').modal('hide');
+          window.location.reload();
+        },error: function(xhr, textStatus, errorMessage) {
+         console.log(errorMessage);
+        }
+      });
+    }
+  })
 
   $('#groups').tagsinput({
     allowDuplicates: false
