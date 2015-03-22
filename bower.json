@@ -9,7 +9,7 @@
     "underscore": "~1.8.2",
     "jquery-validation": "~1.13.1"
   },
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "https://github.com/mcguinness/saml-idp",
   "authors": [
     "Karl McGuinness"

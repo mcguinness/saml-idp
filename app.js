@@ -17,7 +17,7 @@ var express             = require('express'),
     samlp               = require('samlp'),
     yargs               = require('yargs'),
     config              = require('./config.js'),
-    SimpleProfileMapper = require('./simpleProfileMapper.js');
+    SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 
 /**
  * Globals
@@ -176,6 +176,8 @@ console.log();
  * IdP Configuration
  */
 
+SimpleProfileMapper.prototype.metadata = config.metadata;
+
 var idpOptions = {
   issuer:                 argv.issuer,
   cert:                   fs.readFileSync(path.join(__dirname, 'idp-public-cert.pem')),
@@ -273,7 +275,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 var showUser = function (req, res, next) {
   res.render('user', {
     user: req.user,
-    metadata: SimpleProfileMapper.prototype.metadata,
+    metadata: req.metadata,
     authnRequest: req.authnRequest,
     idp: req.idp.options
   });
@@ -286,6 +288,7 @@ var showUser = function (req, res, next) {
 
 app.use(function(req, res, next){
   req.user = config.user;
+  req.metadata = config.metadata;
   req.idp = { options: idpOptions };
 
   samlp.parseRequest(req, function(err, data) {
@@ -362,7 +365,7 @@ app.post('/metadata', function(req, res, next) {
       multiValue: req.body.valueType === 'multi'
     };
 
-    SimpleProfileMapper.prototype.metadata.forEach(function(entry) {
+    req.metadata.forEach(function(entry) {
       if (entry.id === req.body.attributeName) {
         entry = attribute;
         attributeExists = true;
@@ -370,9 +373,9 @@ app.post('/metadata', function(req, res, next) {
     });
 
     if (!attributeExists) {
-      SimpleProfileMapper.prototype.metadata.push(attribute);
+      req.metadata.push(attribute);
     }
-    console.log("Updated SAML Attribute Metadata => \n", SimpleProfileMapper.prototype.metadata)
+    console.log("Updated SAML Attribute Metadata => \n", req.metadata)
     res.status(200).end();
   }
 });
