@@ -75,7 +75,7 @@ The IdP mints the user's profile as a SAML Assertion Attribute Statement using t
 
 ```json
 {
-  email: 'saml.jackson@example.com',
+  email: 'saml.jackson@example.com'
 }
 ```
 
