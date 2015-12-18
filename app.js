@@ -289,7 +289,7 @@ hbs.registerHelper('serialize', function(context) {
  */
 
 app.use(logger(':date> :method :url - {:referrer} => :status (:response-time ms)'));
-app.use(bodyParser.urlencoded({extended: true})) 
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -337,7 +337,7 @@ app.use(function(req, res, next){
 app.get(['/', '/idp'], showUser);
 
 app.post(['/', '/idp'], function(req, res, next) {
-  
+
   var authOptions = extend({}, req.idp.options);
 
   if (req.body.SAMLRequest) {
@@ -356,6 +356,7 @@ app.post(['/', '/idp'], function(req, res, next) {
           authOptions.acsUrl = req.authnRequest.acsUrl;
           authOptions.recipient = req.authnRequest.acsUrl;
           authOptions.destination = req.authnRequest.acsUrl;
+          authOptions.forceAuthn = req.authnRequest.forceAuthn;
         }
         if (req.authnRequest.relayState) {
           authOptions.RelayState = req.authnRequest.relayState;
@@ -465,10 +466,10 @@ httpServer.listen(app.get('port'), function() {
   var scheme   = argv.https ? 'https' : 'http',
       address  = httpServer.address(),
       hostname = os.hostname();
-      baseUrl  = address.address === '0.0.0.0' ? 
+      baseUrl  = address.address === '0.0.0.0' ?
         scheme + '://' + hostname + ':' + address.port :
         scheme + '://localhost:' + address.port;
-  
+
   console.log('listening on port: ' + app.get('port'));
   console.log();
   console.log('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
