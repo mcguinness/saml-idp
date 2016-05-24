@@ -6,6 +6,12 @@
 	overflow-wrap: break-word;
 }
 
+i.fa span {
+  font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-left: 5px;
+}
+
+
 /**
  * user view
  */

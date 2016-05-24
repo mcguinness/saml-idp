@@ -6,7 +6,7 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <a data-toggle="collapse" href="#collapse-authn-request" aria-expanded="false" aria-controls="collapse-authn-request">
-        <h3 class="panel-title"><i class="fa fa-code"> SP Authentication Request</i></h3>
+      <h3 class="panel-title"><i class="fa fa-code"><span>SP Authentication Request</span></i></h3>
       </a>
     </div>
     <div id="collapse-authn-request" class="panel-body collapse">
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        {{/if}}        
+        {{/if}}
 
         {{#if authnRequest.forceAuthn}}
 
@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        {{/if}}             
+        {{/if}}
 
       </form>
     </div>
@@ -80,7 +80,7 @@
 <div class="col-md-8 col-md-offset-2">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title"><i class="fa fa-user-plus"> SAML Assertion</i></h3>
+    <h3 class="panel-title"><i class="fa fa-user-plus"><span>SAML Assertion</span></i></h3>
     </div>
     <div class="panel-body">
 
@@ -94,7 +94,7 @@
               <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
               <p class="help-block">
                 <a data-toggle="collapse" href="#collapseNameId" aria-expanded="false" aria-controls="collapseNameId">
-                   <i class="fa fa-plus"> More Options</i>
+                <i class="fa fa-plus"><span>More Options</span></i>
                 </a>
               </p>
             </div>
@@ -153,16 +153,16 @@
 
         <div class="form-group">
           <div class="col-md-12 text-right">
-            <button id="btn-show-attribute-modal" class="btn btn-default input-xlarge"><i class="fa fa-plus-circle"> Add attribute</i></button>
+            <button id="btn-show-attribute-modal" class="btn btn-default input-xlarge"><i class="fa fa-plus-circle"><span>Add attribute<span></i></button>
 
-            <button type="submit" class="btn btn-primary input-xlarge"><i class="fa fa-sign-in"> Sign in</i></button>
+            <button type="submit" class="btn btn-primary input-xlarge"><i class="fa fa-sign-in"><span>Sign in</span></i></button>
           </div>
         </div>
 
         {{#if authnRequest.id}}
         <input type='hidden' name="_authnRequest" value='{{serialize authnRequest}}'/>
         {{/if}}
-        
+
       </form>
     </div>
   </div>
@@ -220,7 +220,7 @@
 {{#extend "scripts"}}
 <script>
   $("#nameIdFormat option").filter(function() {
-      return $(this).text() == '{{user.nameIdFormat}}'; 
+      return $(this).text() == '{{user.nameIdFormat}}';
   }).prop('selected', true);
 
   $('#btn-show-attribute-modal').click(function(e) {
