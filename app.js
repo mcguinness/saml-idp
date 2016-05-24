@@ -128,6 +128,7 @@ var argv = yargs
 
     argv.cert = fs.readFileSync(argv.cert);
     argv.key = fs.readFileSync(argv.key);
+    return true;
   })
   .check(function(argv, aliases) {
     if (argv.https) {
@@ -143,6 +144,7 @@ var argv = yargs
       argv.httpsPrivateKey = fs.readFileSync(argv.httpsPrivateKey).toString();
       argv.httpsCert = fs.readFileSync(argv.httpsCert).toString();
     }
+    return true;
   })
   .check(function(argv, aliases) {
     var hasFormat = function(file, header) {
