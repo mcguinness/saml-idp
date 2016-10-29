@@ -474,6 +474,8 @@ httpServer.listen(app.get('port'), function() {
 
   console.log('listening on port: ' + app.get('port'));
   console.log();
+  console.log('SAML IdP Metadata: ');
+  console.log('\t=> ' + baseUrl + '/metadata');
   console.log('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
   console.log('\t=> ' + baseUrl + '/idp')
   console.log('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
