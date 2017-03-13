@@ -300,7 +300,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  * View Handlers
  */
 
-var showUser = function (req, res, next) {
+const showUser = function (req, res, next) {
   res.render('user', {
     user: req.user,
     metadata: req.metadata,
@@ -309,17 +309,18 @@ var showUser = function (req, res, next) {
   });
 }
 
-
 /**
- * Routes
+ * Shared Handlers
  */
 
-app.use(function(req, res, next){
-  req.user = config.user;
-  req.metadata = config.metadata;
-  req.idp = { options: idpOptions };
-
+const parseSamlRequest = function(req, res, next) {
   samlp.parseRequest(req, function(err, data) {
+    if (err) {
+      return res.render('error', {
+        message: 'SAML AuthnRequest Parse Error: ' + err.message,
+        error: err
+      });
+    };
     if (data) {
       req.authnRequest = {
         relayState: req.query.RelayState || req.body.RelayState,
@@ -331,53 +332,59 @@ app.use(function(req, res, next){
       };
       console.log('Received AuthnRequest => \n', req.authnRequest);
     }
-    next();
-  });
+    return showUser(req, res, next);
+  })
+};
+
+
+/**
+ * Routes
+ */
+
+app.use(function(req, res, next){
+  req.user = config.user;
+  req.metadata = config.metadata;
+  req.idp = { options: idpOptions };
+  next();
 });
 
+app.get(['/', '/idp'], parseSamlRequest);
+app.post(['/', '/idp'], parseSamlRequest);
 
-app.get(['/', '/idp'], showUser);
-
-app.post(['/', '/idp'], function(req, res, next) {
-
+app.post('/sso', function(req, res) {
   var authOptions = extend({}, req.idp.options);
+  console.log('here');
+  Object.keys(req.body).forEach(function(key) {
+    var buffer;
+    if (key === '_authnRequest') {
+      buffer = new Buffer(req.body[key], 'base64');
+      req.authnRequest = JSON.parse(buffer.toString('utf8'));
 
-  if (req.body.SAMLRequest) {
-    showUser(req, res, next);
-  } else {
-    // Form POST
-    Object.keys(req.body).forEach(function(key) {
-      var buffer;
-      if (key === '_authnRequest') {
-        buffer = new Buffer(req.body[key], 'base64');
-        req.authnRequest = JSON.parse(buffer.toString('utf8'));
-
-        // Apply AuthnRequest Params
-        authOptions.inResponseTo = req.authnRequest.id;
-        if (req.idp.options.allowRequestAcsUrl && req.authnRequest.acsUrl) {
-          authOptions.acsUrl = req.authnRequest.acsUrl;
-          authOptions.recipient = req.authnRequest.acsUrl;
-          authOptions.destination = req.authnRequest.acsUrl;
-          authOptions.forceAuthn = req.authnRequest.forceAuthn;
-        }
-        if (req.authnRequest.relayState) {
-          authOptions.RelayState = req.authnRequest.relayState;
-        }
-      } else {
-        req.user[key] = req.body[key];
+      // Apply AuthnRequest Params
+      authOptions.inResponseTo = req.authnRequest.id;
+      if (req.idp.options.allowRequestAcsUrl && req.authnRequest.acsUrl) {
+        authOptions.acsUrl = req.authnRequest.acsUrl;
+        authOptions.recipient = req.authnRequest.acsUrl;
+        authOptions.destination = req.authnRequest.acsUrl;
+        authOptions.forceAuthn = req.authnRequest.forceAuthn;
       }
-    });
-
-    if (!authOptions.encryptAssertion) {
-      delete authOptions.encryptionCert;
-      delete authOptions.encryptionPublicKey;
+      if (req.authnRequest.relayState) {
+        authOptions.RelayState = req.authnRequest.relayState;
+      }
+    } else {
+      req.user[key] = req.body[key];
     }
+  });
 
-    // Keep calm and Single Sign On
-    console.log('Sending Assertion with Options => \n', authOptions);
-    samlp.auth(authOptions)(req, res);
+  if (!authOptions.encryptAssertion) {
+    delete authOptions.encryptionCert;
+    delete authOptions.encryptionPublicKey;
   }
-});
+
+  // Keep calm and Single Sign On
+  console.log('Sending Assertion with Options => \n', authOptions);
+  samlp.auth(authOptions)(req, res);
+})
 
 app.get('/metadata', function(req, res, next) {
   samlp.metadata(req.idp.options)(req, res);
@@ -440,18 +447,20 @@ app.post(['/settings'], function(req, res, next) {
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+  var err = new Error('Route Not Found');
+  err.status = 404;
+  next(err);
 });
 
 // development error handler
 app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-      message: err.message,
-      error: err
-  });
+  if (err) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: err
+    });
+  }
 });
 
 /**
