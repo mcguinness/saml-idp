@@ -110,6 +110,13 @@ var argv = yargs
       required: true,
       boolean: true,
       default: false
+    },
+    signResponse: {
+      description: 'Enables signing of responses',
+      required: false,
+      boolean: true,
+      default: false,
+      alias: 'signResponse'
     }
   })
   .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
@@ -198,6 +205,7 @@ console.log('SP Audience URI:\n\t' + argv.audience);
 console.log('Default RelayState:\n\t' + argv.relayState);
 console.log('Allow SP to Specify ACS URLs:\n\t' + !argv.disableRequestAcsUrl);
 console.log('Assertion Encryption:\n\t' + argv.encryptAssertion);
+console.log('Sign Response:\n\t' + argv.signResponse);
 console.log();
 
 /**
@@ -218,7 +226,7 @@ var idpOptions = {
   allowRequestAcsUrl:     !argv.disableRequestAcsUrl,
   digestAlgorithm:        'sha256',
   signatureAlgorithm:     'rsa-sha256',
-  signResponse:           false,
+  signResponse:           argv.signResponse,
   encryptAssertion:       argv.encryptAssertion,
   encryptionAlgorithm:    'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
   keyEncryptionAlgorighm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
@@ -237,7 +245,6 @@ if (argv.encryptAssertion) {
   idpOptions.encryptionCert = fs.readFileSync(argv.encryptionCert);
   idpOptions.encryptionPublicKey = fs.readFileSync(argv.encryptionPublicKey);
 }
-
 
 /**
  * App Environment
