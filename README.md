@@ -4,7 +4,14 @@ This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Prov
 
 > **This sample is not intended for use with production systems!** 
 
-## Installation
+## Docker Installation and Startup
+
+1. docker-compose build
+2. docker-compose up
+
+Simply modify Dockerfile to specify your own parameters.
+
+## Manual Installation
 
 1. `npm install`
 2. `bower install`
