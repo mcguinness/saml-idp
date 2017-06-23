@@ -16,7 +16,6 @@ var express             = require('express'),
     bodyParser          = require('body-parser'),
     samlp               = require('samlp'),
     yargs               = require('yargs'),
-    config              = require('./config.js'),
     SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 
 /**
@@ -25,15 +24,16 @@ var express             = require('express'),
 
 var app                 = express(),
     blocks              = {},
-    httpServer;
+    httpServer,
+    config;
 
 
 function isCertString(value) {
-    return /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/.test(value);
+  return /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/.test(value);
 }
 
 function isPrivateKeyString(value) {
-    return /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/.test(value);
+  return /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/.test(value);
 }
 
 function bufferFromString(value) {
@@ -43,6 +43,26 @@ function bufferFromString(value) {
   } else {
     return new Buffer(value);
   }
+}
+
+function resolveFilePath(filePath) {
+  var possiblePath;
+  if (filePath.slice(0, 2) === '~/') {
+    possiblePath = path.resolve(process.env.HOME, filePath.slice(2));
+    if (fs.existsSync(possiblePath)) {
+      return possiblePath;
+    } else {
+      // for ~/ paths, don't try to resolve further
+      return filePath;
+    }
+  }
+  ['.', __dirname].forEach(function (base) {
+    possiblePath = path.resolve(base, filePath);
+    if (fs.existsSync(possiblePath)) {
+      return possiblePath;
+    }
+  });
+  return filePath;
 }
 
 /**
@@ -134,16 +154,24 @@ var argv = yargs
       boolean: true,
       default: false,
       alias: 'signResponse'
+    },
+    configFile: {
+      description: 'Path to a SAML attribute config file',
+      required: true,
+      default: require.resolve('./config.js'),
+      alias: 'conf'
     }
   })
   .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
   .check(function(argv, aliases) {
+    argv.cert = resolveFilePath(argv.cert);
+    argv.key = resolveFilePath(argv.key);
 
     if (fs.existsSync(argv.cert)) {
       argv.cert = fs.readFileSync(argv.cert);
     } else if (isCertString(argv.cert)) {
       argv.cert = bufferFromString(argv.cert);
-    } else if (!fs.existsSync(argv.cert)) {
+    } else {
       return 'IdP Signature PublicKey Certificate "' + argv.cert + '" is not a valid file path.\n' +
         "Please generate a key-pair for the IdP using the following openssl command:\n" +
         "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
@@ -153,7 +181,7 @@ var argv = yargs
       argv.key = fs.readFileSync(argv.key);
     } else if (isPrivateKeyString(argv.key)) {
       argv.key = bufferFromString(argv.key);
-    } else if (!fs.existsSync(argv.key)) {
+    } else {
       return 'IdP Signature PrivateKey Certificate "' + argv.key + '" is not a valid file path.\n' +
         "Please generate a key-pair for the IdP using the following openssl command:\n" +
         "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
@@ -215,8 +243,20 @@ var argv = yargs
     }
     return true;
   })
-  .argv;
+  .check(function(argv, aliases) {
+    argv.configFile = resolveFilePath(argv.configFile);
 
+    if (!fs.existsSync(argv.configFile)) {
+      return 'SAML attribute config file path "' + argv.configFile + '" is not a valid path.\n';
+    }
+    try {
+      config = require(argv.configFile);
+    } catch (error) {
+      return 'Encountered an exception while loading SAML attribute config file "' + argv.configFile + '".\n' + error;
+    }
+    return true;
+  })
+  .argv;
 
 
 console.log();
