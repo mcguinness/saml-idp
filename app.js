@@ -28,6 +28,23 @@ var app                 = express(),
     httpServer;
 
 
+function isCertString(value) {
+    return /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/.test(value);
+}
+
+function isPrivateKeyString(value) {
+    return /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/.test(value);
+}
+
+function bufferFromString(value) {
+  if (Buffer.hasOwnProperty('from')) {
+    // node 6+
+    return Buffer.from(value);
+  } else {
+    return new Buffer(value);
+  }
+}
+
 /**
  * Arguments
  */
@@ -121,20 +138,26 @@ var argv = yargs
   })
   .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
   .check(function(argv, aliases) {
-    if (!fs.existsSync(argv.cert)) {
+
+    if (fs.existsSync(argv.cert)) {
+      argv.cert = fs.readFileSync(argv.cert);
+    } else if (isCertString(argv.cert)) {
+      argv.cert = bufferFromString(argv.cert);
+    } else if (!fs.existsSync(argv.cert)) {
       return 'IdP Signature PublicKey Certificate "' + argv.cert + '" is not a valid file path.\n' +
         "Please generate a key-pair for the IdP using the following openssl command:\n" +
         "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
     }
 
-    if (!fs.existsSync(argv.key)) {
+    if (fs.existsSync(argv.key)) {
+      argv.key = fs.readFileSync(argv.key);
+    } else if (isPrivateKeyString(argv.key)) {
+      argv.key = bufferFromString(argv.key);
+    } else if (!fs.existsSync(argv.key)) {
       return 'IdP Signature PrivateKey Certificate "' + argv.key + '" is not a valid file path.\n' +
         "Please generate a key-pair for the IdP using the following openssl command:\n" +
         "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300"
     }
-
-    argv.cert = fs.readFileSync(argv.cert);
-    argv.key = fs.readFileSync(argv.key);
     return true;
   })
   .check(function(argv, aliases) {
@@ -216,8 +239,8 @@ SimpleProfileMapper.prototype.metadata = config.metadata;
 
 var idpOptions = {
   issuer:                 argv.issuer,
-  cert:                   fs.readFileSync(path.join(__dirname, 'idp-public-cert.pem')),
-  key:                    fs.readFileSync(path.join(__dirname, 'idp-private-key.pem')),
+  cert:                   argv.cert,
+  key:                    argv.key,
   audience:               argv.audience,
   recipient:              argv.acsUrl,
   destination:            argv.acsUrl,
@@ -484,7 +507,7 @@ httpServer.listen(app.get('port'), function() {
   var scheme   = argv.https ? 'https' : 'http',
       address  = httpServer.address(),
       hostname = os.hostname();
-      baseUrl  = address.address === '0.0.0.0' ?
+      baseUrl  = address.address === '0.0.0.0' || address.address === '::' ?
         scheme + '://' + hostname + ':' + address.port :
         scheme + '://localhost:' + address.port;
 
