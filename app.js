@@ -484,7 +484,7 @@ httpServer.listen(app.get('port'), function() {
   var scheme   = argv.https ? 'https' : 'http',
       address  = httpServer.address(),
       hostname = os.hostname();
-      baseUrl  = address.address === '0.0.0.0' ?
+      baseUrl  = address.address === '0.0.0.0' || address.address === '::' ?
         scheme + '://' + hostname + ':' + address.port :
         scheme + '://localhost:' + address.port;
 
