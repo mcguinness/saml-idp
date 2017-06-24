@@ -90,15 +90,20 @@ function makeCertFileCoercer(type, description, helpText) {
 /**
  * Arguments
  */
-function processArgs() {
+function processArgs(options) {
+  var baseArgv;
   console.log();
   console.log('loading configuration...');
 
-  return yargs
-    .config('settings', function(settingsPathArg) {
+  if (options) {
+    baseArgv = yargs.config(options);
+  } else {
+    baseArgv = yargs.config('settings', function(settingsPathArg) {
       var settingsPath = resolveFilePath(settingsPathArg);
       return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    })
+    });
+  }
+  return baseArgv
     .usage('\nSimple IdP for SAML 2.0 WebSSO Profile\n\n' +
         'Launches Web Server that mints SAML assertions for a Service Provider (SP)\n\n' +
         'Usage:\n\t$0 -acs {url} -aud {uri}', {
@@ -225,12 +230,11 @@ function processArgs() {
         return 'Encountered an exception while loading SAML attribute config file "' + configFilePath + '".\n' + error;
       }
       return true;
-    })
-    .argv;
+    });
 }
 
 
-function runServer(argv) {
+function _runServer(argv) {
   var app                 = express(),
       blocks              = {},
       httpServer;
@@ -534,11 +538,16 @@ function runServer(argv) {
   });
 }
 
+function runServer(options) {
+  const args = processArgs(options);
+  return _runServer(args.parse([]));
+}
+
 module.exports = {
   runServer,
 };
 
 if (require.main === module) {
-  const argv = processArgs();
-  runServer(argv);
+  const args = processArgs();
+  _runServer(args.argv);
 }
