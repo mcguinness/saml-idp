@@ -142,7 +142,8 @@ New attributes can be defined at runtime in the IdP UI or statically by modifyin
       "description": "My custom attribute",
       "multiValue": false
     }
-```
+    ```
+
 2. Optionally add a default profile attribute value that will be used on startup
 
 
