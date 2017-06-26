@@ -1,23 +1,31 @@
 {
   "name": "saml-idp",
-  "description": "Sample Identity Provider (IdP) for testing SAML 2.0 Web Browser SSO Profile",
-  "version": "0.3.0",
-  "private": true,
+  "description": "Test Identity Provider (IdP) for SAML 2.0 Web Browser SSO Profile",
+  "version": "0.4.0",
+  "private": false,
   "author": "Karl McGuinness",
+  "keywords": [
+    "saml",
+    "idp",
+    "okta"
+  ],
   "license": {
     "type": "MIT",
     "url": "https://github.com/mcguinness/saml-idp/blob/master/LICENSE"
   },
-  "main": "./app.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mcguinness/saml-idp"
   },
+  "bugs": {
+    "url": "https://github.com/mcguinness/saml-idp/issues"
+  },
+  "main": "./app.js",
   "scripts": {
     "start": "node app.js"
   },
   "engines": {
-    "node": ">=0.8.8"
+    "node": ">=6.0.0"
   },
   "dependencies": {
     "body-parser": "~1.17.0",
