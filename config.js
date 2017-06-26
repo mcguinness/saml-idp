@@ -52,6 +52,12 @@ var metadata = [{
   displayName: 'Groups',
   description: 'Group memberships of the user',
   multiValue: true
+}, {
+  id: "userType",
+  optional: true,
+  displayName: 'User Type',
+  description: 'The type of user',
+  options: ['Admin', 'Editor', 'Commenter']
 }];
 
 module.exports = {

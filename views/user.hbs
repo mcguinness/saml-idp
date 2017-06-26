@@ -144,7 +144,15 @@
           <div class="form-group">
             <label for="{{this.id}}" class="col-sm-3 control-label">{{this.displayName}}</label>
             <div class="col-sm-9">
-              <input id="{{this.id}}" class="form-control" name="{{this.id}}" type="text" placeholder="Attribute value" {{#unless this.optional}}required=""{{/unless}} value="{{getProperty this.id ../user}}" {{#if this.multiValue}}data-role="tagsinput"{{/if}}>
+              {{#if this.options}}
+                <select id="{{this.id}}" class="form-control" name="{{this.id}}">
+                  {{#each this.options}}
+                    <option>{{this}}</option>
+                  {{/each}}
+                </select>
+              {{else}}
+                <input id="{{this.id}}" class="form-control" name="{{this.id}}" type="text" placeholder="Attribute value" {{#unless this.optional}}required=""{{/unless}} value="{{getProperty this.id ../user}}" {{#if this.multiValue}}data-role="tagsinput"{{/if}}>
+              {{/if}}
             </div>
           </div>
         {{/each}}
@@ -254,5 +262,3 @@
   });
 </script>
 {{/extend}}
-
-
