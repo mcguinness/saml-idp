@@ -219,6 +219,9 @@ function processArgs(options) {
       return true;
     })
     .check(function(argv, aliases) {
+      if (argv.config) {
+        return true;
+      }
       const configFilePath = resolveFilePath(argv.configFile);
 
       if (!configFilePath) {
