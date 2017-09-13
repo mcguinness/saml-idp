@@ -24,6 +24,7 @@
   "scripts": {
     "start": "node app.js"
   },
+  "bin": "./bin/run.js",
   "engines": {
     "node": ">=6.0.0"
   },
