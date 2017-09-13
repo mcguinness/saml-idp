@@ -22,7 +22,8 @@
   },
   "main": "./app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "prepare": "bower install"
   },
   "engines": {
     "node": ">=6.0.0"
@@ -37,5 +38,8 @@
     "morgan": "~1.8.1",
     "samlp": "2.1.1",
     "yargs": "^7.0.1"
+  },
+  "devDependencies": {
+    "bower": "^1.8.0"
   }
 }
