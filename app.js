@@ -546,11 +546,16 @@ function runServer(options) {
   return _runServer(args.parse([]));
 }
 
+function main () {
+  const args = processArgs();
+  _runServer(args.argv);
+}
+
 module.exports = {
   runServer,
+  main,
 };
 
 if (require.main === module) {
-  const args = processArgs();
-  _runServer(args.argv);
+  main();
 }
