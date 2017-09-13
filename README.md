@@ -14,10 +14,7 @@ Simply modify Dockerfile to specify your own parameters.
 ## Manual Installation
 
 1. `npm install`
-2. `bower install`
 3. `openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300`
-
-> [Bower](http://bower.io/), a front-end package manager, can be installed with `npm install -g bower`
 
 ### Usage
 
