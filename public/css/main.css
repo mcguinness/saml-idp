@@ -11,6 +11,24 @@ i.fa span {
   margin-left: 5px;
 }
 
+.panel-primary > .panel-heading {
+  background-color: #2d3f50;
+  color: #ecf0f1;
+}
+
+.panel-primary > .panel-heading a {
+  color: #ecf0f1;
+}
+
+.panel-default .panel-heading a {
+  color: #2c3e50;
+}
+
+.navbar-default .navbar-text {
+  color: #ECF0F1;
+  font-weight: 500;
+}
+
 
 /**
  * user view

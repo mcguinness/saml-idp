@@ -1,264 +1,268 @@
-
 {{#if authnRequest.id}}
-
 <div class="col-md-8 col-md-offset-2">
-
-  <div class="panel panel-default">
+  <div class="panel panel-primary">
     <div class="panel-heading">
-      <a data-toggle="collapse" href="#collapse-authn-request" aria-expanded="false" aria-controls="collapse-authn-request">
-      <h3 class="panel-title"><i class="fa fa-code"><span>SP Authentication Request</span></i></h3>
-      </a>
+      <a aria-controls="collapse-authn-request" aria-expanded="false" data-toggle="collapse" href="#collapse-authn-request">
+      <h3 class="panel-title"><i class="fa fa-code"><span>SAML Authentication Request</span></i> <i aria-hidden="true" class="indicator fa fa-chevron-circle-down pull-right"></i></h3></a>
     </div>
-    <div id="collapse-authn-request" class="panel-body collapse">
+    <div class="panel-body collapse" id="collapse-authn-request">
       <form class="form-horizontal" role="form">
-
         <div class="form-group">
-          <label for="requestId" class="col-sm-3 control-label">Request ID</label>
+          <label class="col-sm-3 control-label" for="requestId">Request ID</label>
           <div class="col-sm-9">
-            <p id="requestId" class="form-control-static">{{authnRequest.id}}</p>
+            <p class="form-control-static" id="requestId">{{authnRequest.id}}</p>
           </div>
         </div>
-
         <div class="form-group">
-          <label for="issuer" class="col-sm-3 control-label">Issuer</label>
+          <label class="col-sm-3 control-label" for="issuer">Issuer</label>
           <div class="col-sm-9">
-            <p id="issuer" class="form-control-static">{{authnRequest.issuer}}</p>
+            <p class="form-control-static" id="issuer">{{authnRequest.issuer}}</p>
           </div>
         </div>
-
         {{#if authnRequest.destination}}
-
         <div class="form-group">
-          <label for="destination" class="col-sm-3 control-label">Destination</label>
+          <label class="col-sm-3 control-label" for="destination">Destination</label>
           <div class="col-sm-9">
-            <p id="destination" class="form-control-static">{{authnRequest.destination}}</p>
+            <p class="form-control-static" id="destination">{{authnRequest.destination}}</p>
           </div>
         </div>
-
         {{/if}}
-
         {{#if authnRequest.acsUrl}}
-
         <div class="form-group">
-          <label for="acsUrl" class="col-sm-3 control-label">ACS URL</label>
+          <label class="col-sm-3 control-label" for="acsUrl">ACS URL</label>
           <div class="col-sm-9">
-            <p id="acsUrl" class="form-control-static">{{authnRequest.acsUrl}}</p>
+            <p class="form-control-static" id="acsUrl">{{authnRequest.acsUrl}}</p>
           </div>
         </div>
-
         {{/if}}
-
         {{#if authnRequest.forceAuthn}}
-
         <div class="form-group">
-          <label for="forceAuthn" class="col-sm-3 control-label">ForceAuthn</label>
+          <label class="col-sm-3 control-label" for="forceAuthn">ForceAuthn</label>
           <div class="col-sm-9">
-            <p id="forceAuthn" class="form-control-static">{{authnRequest.forceAuthn}}</p>
+            <p class="form-control-static" id="forceAuthn">{{authnRequest.forceAuthn}}</p>
           </div>
         </div>
-
         {{/if}}
-
         {{#if authnRequest.relayState}}
-
         <div class="form-group">
-          <label for="relayState" class="col-sm-3 control-label">Relay State</label>
+          <label class="col-sm-3 control-label" for="relayState">Relay State</label>
           <div class="col-sm-9">
-            <p id="relayState" class="form-control-static">{{authnRequest.relayState}}</p>
+            <p class="form-control-static" id="relayState">{{authnRequest.relayState}}</p>
           </div>
         </div>
-
         {{/if}}
-
       </form>
     </div>
   </div>
 </div>
-
 {{/if}}
 
 <div class="col-md-8 col-md-offset-2">
-  <div class="panel panel-default">
+  <div class="panel panel-primary">
     <div class="panel-heading">
-    <h3 class="panel-title"><i class="fa fa-user-plus"><span>SAML Assertion</span></i></h3>
+      <h3 class="panel-title"><i class="fa fa-code"><span>SAML Assertion</span></i></h3>
     </div>
     <div class="panel-body">
-
-      <form class="form-horizontal form-profile" role="form" method="POST" action="/sso">
-
+      <form action="/sso" class="form-horizontal form-profile" method="post" role="form">
         <div class='form-profile-attributes'>
-
-          <div class="form-group">
-            <label for="userName" class="col-sm-3 control-label">Subject NameID</label>
-            <div class="col-sm-9">
-              <input id="userName" class="form-control" name="userName" type="email" placeholder="user@example.com" required="" value="{{user.userName}}">
-              <p class="help-block">
-                <a data-toggle="collapse" href="#collapseNameId" aria-expanded="false" aria-controls="collapseNameId">
-                <i class="fa fa-plus"><span>More Options</span></i>
-                </a>
-              </p>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"><i class="fa fa-user-o"><span>Subject Statement</span></i></h3>
+            </div>
+            <div class="panel-body">
+              <div class="form-group">
+                <label class="col-sm-3 control-label" for="userName">Subject NameID</label>
+                <div class="col-sm-9">
+                  <input class="form-control" id="userName" name="userName" placeholder="user@example.com" required="" type="email" value="{{user.userName}}">
+                  <p class="help-block"><a aria-controls="collapseNameId" aria-expanded="false" data-toggle="collapse" href="#collapseNameId"><i class="fa fa-plus"><span>More Options</span></i></a></p>
+                </div>
+              </div>
+              <div class="collapse" id="collapseNameId">
+                <div class="form-group">
+                  <label class="col-sm-3 control-label" for="nameIdFormat">Name ID Format</label>
+                  <div class="col-sm-9">
+                    <select class="form-control" id="nameIdFormat" name="nameIdFormat">
+                      <option>
+                        urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName
+                      </option>
+                      <option>
+                        urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-3 control-label" for="nameIdNameQualifier">Name Qualifier</label>
+                  <div class="col-sm-9">
+                    <input class="form-control" id="nameIdNameQualifier" name="nameIdNameQualifier" type="text" value="{{user.nameIdNameQualifier}}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-3 control-label" for="nameIdSPNameQualifier">Service Provider Name Qualifier</label>
+                  <div class="col-sm-9">
+                    <input class="form-control" id="nameIdSPNameQualifier" name="nameIdSPNameQualifier" type="text" value="{{user.nameIdSPNameQualifier}}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-3 control-label" for="nameIdSPProvidedID">Service Provider Provided ID</label>
+                  <div class="col-sm-9">
+                    <input class="form-control" id="nameIdSPProvidedID" name="nameIdSPProvidedID" type="text" value="{{user.nameIdSPProvidedID}}">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div class="collapse" id="collapseNameId">
-
-            <div class="form-group">
-              <label for="nameIdFormat" class="col-sm-3 control-label">Name ID Format</label>
-              <div class="col-sm-9">
-                <select id="nameIdFormat" class="form-control" name="nameIdFormat">
-                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</option>
-                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</option>
-                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</option>
-                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</option>
-                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</option>
-                  <option>urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName</option>
-                  <option>urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos</option>
-                </select>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <a aria-controls="collapse-authn-request" aria-expanded="false" data-toggle="collapse" href="#collapse-authn-statement">
+              <h3 class="panel-title"><i class="fa fa-lock"><span>Authentication Statement</span></i> <i aria-hidden="true" class="indicator fa fa-chevron-circle-down pull-right"></i></h3></a>
+            </div>
+            <div class="panel-body collapse" id="collapse-authn-statement">
+              <div class="form-group">
+                <label class="col-sm-3 control-label" for="sessionIndex">Session Index</label>
+                <div class="col-sm-9">
+                  <p class="form-control-static" id="sessionIndex">{{user.sessionIndex}}</p>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-3 control-label" for="authnContextClassRef">Authentication Context Class</label>
+                <div class="col-sm-9">
+                  <p class="form-control-static" id="authnContextClassRef">{{idp.authnContextClassRef}}</p>
+                </div>
               </div>
             </div>
-
-            <div class="form-group">
-              <label for="nameIdNameQualifier" class="col-md-3 control-label">Name Qualifier</label>
-              <div class="col-sm-9">
-                <input id="nameIdNameQualifier" class="form-control" name="nameIdNameQualifier" type="text" value="{{user.nameIdNameQualifier}}">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="nameIdSPNameQualifier" class="col-md-3 control-label">Service Provider Name Qualifier</label>
-              <div class="col-sm-9">
-                <input id="nameIdSPNameQualifier" class="form-control" name="nameIdSPNameQualifier" type="text" value="{{user.nameIdSPNameQualifier}}">
-              </div>
-            </div>
-
-             <div class="form-group">
-              <label for="nameIdSPProvidedID" class="col-md-3 control-label">Service Provider Provided ID</label>
-              <div class="col-sm-9">
-                <input id="nameIdSPProvidedID" class="form-control" name="nameIdSPProvidedID" type="text" value="{{user.nameIdSPProvidedID}}">
-              </div>
-            </div>
-
           </div>
-
-        {{#each metadata}}
-          <div class="form-group">
-            <label for="{{this.id}}" class="col-sm-3 control-label">{{this.displayName}}</label>
-            <div class="col-sm-9">
-              {{#if this.options}}
-                <select id="{{this.id}}" class="form-control" name="{{this.id}}">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"><i class="fa fa-id-card-o"><span>Attribute Statements</span></i></h3>
+            </div>
+            <div class="panel-body">
+              {{#each metadata}}
+              <div class="form-group">
+                <label class="col-sm-3 control-label" for="{{this.id}}">{{this.displayName}}</label>
+                <div class="col-sm-9">
+                  {{#if this.options}}
+                  <select class="form-control" id="{{this.id}}" name="{{this.id}}">
                   {{#each this.options}}
-                    <option>{{this}}</option>
+                    <option>
+                      {{this}}
+                    </option>
                   {{/each}}
-                </select>
-              {{else}}
-                <input id="{{this.id}}" class="form-control" name="{{this.id}}" type="text" placeholder="Attribute value" {{#unless this.optional}}required=""{{/unless}} value="{{getProperty this.id ../user}}" {{#if this.multiValue}}data-role="tagsinput"{{/if}}>
-              {{/if}}
+                  </select>
+                  {{else}}
+                  <input class="form-control" id="{{this.id}}" name="{{this.id}}" placeholder="Attribute value" type="text" value="{{getProperty this.id ../user}}">
+                  {{/if}}
+                </div>
+              </div>
+              {{/each}}
             </div>
           </div>
-        {{/each}}
-
-        </div> <!-- /.form-profile-attributes -->
-
-        <div class="form-group">
-          <div class="col-md-12 text-right">
-            <button id="btn-show-attribute-modal" class="btn btn-default input-xlarge"><i class="fa fa-plus-circle"><span>Add attribute<span></i></button>
-
-            <button type="submit" class="btn btn-primary input-xlarge"><i class="fa fa-sign-in"><span>Sign in</span></i></button>
-          </div>
+          <div class="form-group">
+            <div class="col-md-12 text-right">
+              <button class="btn btn-default input-xlarge" id="btn-show-attribute-modal"><i class="fa fa-plus-circle"><span>Add attribute</span></i></button> <button class="btn btn-primary input-xlarge" type="submit"><i class="fa fa-sign-in"><span>Sign in</span></i></button>
+            </div>
+          </div>{{#if authnRequest.id}} <input name="_authnRequest" type='hidden' value='{{serialize authnRequest}}'> {{/if}}
         </div>
-
-        {{#if authnRequest.id}}
-        <input type='hidden' name="_authnRequest" value='{{serialize authnRequest}}'/>
-        {{/if}}
-
       </form>
-    </div>
+    </div><!-- /.form-profile-attributes -->
   </div>
 </div>
-
-<div id="modal-attribute" class="modal fade">
+<div class="modal fade" id="modal-attribute">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button aria-label="Close" class="close" data-dismiss="modal" type="button"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Add Attribute</h4>
       </div>
       <div class="modal-body">
         <form class="form-horizontal" role="form">
           <div class="form-group">
-            <label for="attributeName" class="col-md-3 control-label">SAML Attribute Name</label>
+            <label class="col-md-3 control-label" for="attributeName">SAML Attribute Name</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" required="" name="attributeName">
+              <input class="form-control" name="attributeName" required="" type="text">
             </div>
           </div>
           <div class="form-group">
-            <label for="displayName" class="col-md-3 control-label">Display Name</label>
+            <label class="col-md-3 control-label" for="displayName">Display Name</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" required="" name="displayName">
+              <input class="form-control" name="displayName" required="" type="text">
             </div>
           </div>
           <div class="form-group">
-            <label for="description" class="col-md-3 control-label">Description</label>
+            <label class="col-md-3 control-label" for="description">Description</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" name="description">
+              <input class="form-control" name="description" type="text">
             </div>
           </div>
           <div class="form-group">
-            <label for="attributeValueOption" class="col-md-3 control-label">Attribute Value</label>
+            <label class="col-md-3 control-label" for="attributeValueOption">Attribute Value</label>
             <div class="col-sm-9">
-              <label class="radio-inline">
-                <input type="radio" name="valueType" value="single" checked> Single Value
-              </label>
-              <label class="radio-inline">
-                <input type="radio" name="valueType" value="multi"> Multi-Value
-              </label>
+              <label class="radio-inline"><input checked name="valueType" type="radio" value="single">Single Value</label> <label class="radio-inline"><input name="valueType" type="radio" value="multi">Multi-Value</label>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Add attribute</button>
+        <button class="btn btn-default" data-dismiss="modal" type="button">Close</button> <button class="btn btn-primary" type="button">Add attribute</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-
 {{#extend "scripts"}}
 <script>
-  $("#nameIdFormat option").filter(function() {
-      return $(this).text() == '{{user.nameIdFormat}}';
-  }).prop('selected', true);
+$(document).ready(function() {
+   $("#nameIdFormat option").filter(function() {
+       return $(this).text() == '{{user.nameIdFormat}}';
+   }).prop('selected', true);
 
-  $('#btn-show-attribute-modal').click(function(e) {
-    e.preventDefault();
-    var $modal = $('#modal-attribute');
-    $modal.find('input[type=text]').val('');
-    $modal.modal('show');
-  });
+   $('#btn-show-attribute-modal').click(function(e) {
+     e.preventDefault();
+     var $modal = $('#modal-attribute');
+     $modal.find('input[type=text]').val('');
+     $modal.modal('show');
+   });
 
-  $('#modal-attribute .btn-primary').click(function(e) {
-    e.preventDefault();
-    var $form = $("#modal-attribute form");
-    $form.validate();
-    if ($form.valid()) {
-      $.ajax({
-        type: "POST",
-        url: '/metadata',
-        data: $("#modal-attribute form").serialize(),
-        success: function() {
-          $('#modal-attribute').modal('hide');
-          window.location.reload();
-        },error: function(xhr, textStatus, errorMessage) {
-         console.log(errorMessage);
-        }
-      });
-    }
-  })
+   $('#modal-attribute .btn-primary').click(function(e) {
+     e.preventDefault();
+     var $form = $("#modal-attribute form");
+     $form.validate();
+     if ($form.valid()) {
+       $.ajax({
+         type: "POST",
+         url: '/metadata',
+         data: $("#modal-attribute form").serialize(),
+         success: function() {
+           $('#modal-attribute').modal('hide');
+           window.location.reload();
+         },error: function(xhr, textStatus, errorMessage) {
+          console.log(errorMessage);
+         }
+       });
+     }
+   })
 
-  $('#groups').tagsinput({
-    allowDuplicates: false
-  });
-</script>
-{{/extend}}
+   $('#groups').tagsinput({
+     allowDuplicates: false
+   });
+
+   $('a[data-toggle=collapse]').click(function() {
+     $(this).find('i.indicator').toggleClass('fa-chevron-circle-down fa-chevron-circle-up');
+   });
+});
+</script>{{/extend}}

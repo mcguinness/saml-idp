@@ -3,26 +3,27 @@
  * Module dependencies.
  */
 
-var express             = require('express'),
-    os                  = require('os'),
-    fs                  = require('fs'),
-    http                = require('http'),
-    https               = require('https'),
-    path                = require('path'),
-    extend              = require('extend'),
-    hbs                 = require('hbs'),
-    logger              = require('morgan'),
-    cookieParser        = require('cookie-parser'),
-    bodyParser          = require('body-parser'),
-    samlp               = require('samlp'),
-    yargs               = require('yargs'),
-    SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
+const express             = require('express'),
+      os                  = require('os'),
+      fs                  = require('fs'),
+      http                = require('http'),
+      https               = require('https'),
+      path                = require('path'),
+      extend              = require('extend'),
+      hbs                 = require('hbs'),
+      logger              = require('morgan'),
+      cookieParser        = require('cookie-parser'),
+      bodyParser          = require('body-parser'),
+      session             = require('express-session'),
+      samlp               = require('samlp'),
+      yargs               = require('yargs'),
+      SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 
 /**
  * Globals
  */
 
-var cryptTypes           = {
+const cryptTypes           = {
       certificate: /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/,
       'RSA private key': /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/,
       'public key': /-----BEGIN PUBLIC KEY-----\n[^-]*\n-----END PUBLIC KEY-----/,
@@ -75,7 +76,7 @@ function makeCertFileCoercer(type, description, helpText) {
       return value;
     }
 
-    var filePath = resolveFilePath(value);
+    const filePath = resolveFilePath(value);
     if (filePath) {
       return fs.readFileSync(filePath)
     }
@@ -84,6 +85,17 @@ function makeCertFileCoercer(type, description, helpText) {
       (helpText ? '\n' + helpText : '')
     )
   };
+}
+
+function getHashCode(str) {
+  var hash = 0;
+  if (str.length == 0) return hash;
+  for (i = 0; i < str.length; i++) {
+    char = str.charCodeAt(i);
+    hash = ((hash<<5)-hash)+char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
 }
 
 
@@ -99,7 +111,7 @@ function processArgs(options) {
     baseArgv = yargs.config(options);
   } else {
     baseArgv = yargs.config('settings', function(settingsPathArg) {
-      var settingsPath = resolveFilePath(settingsPathArg);
+      const settingsPath = resolveFilePath(settingsPathArg);
       return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
     });
   }
@@ -153,6 +165,13 @@ function processArgs(options) {
         alias: 'static',
         default: false
       },
+      encryptAssertion: {
+        description: 'Encrypts assertion with SP Public Key',
+        required: false,
+        boolean: true,
+        alias: 'enc',
+        default: false
+      },
       encryptionCert: {
         description: 'SP Certificate (pem) for Assertion Encryption',
         required: false,
@@ -190,7 +209,7 @@ function processArgs(options) {
         description: 'Enables signing of responses',
         required: false,
         boolean: true,
-        default: false,
+        default: true,
         alias: 'signResponse'
       },
       configFile: {
@@ -198,23 +217,23 @@ function processArgs(options) {
         required: true,
         default: require.resolve('./config.js'),
         alias: 'conf'
+      },
+      rollSession: {
+        description: 'Create a new session for every authn request instead of reusing an existing session',
+        required: false,
+        boolean: true,
+        default: false
       }
     })
     .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
     .check(function(argv, aliases) {
-      if (argv.encryptionCert) {
+      if (argv.encryptAssertion) {
         if (argv.encryptionPublicKey === undefined) {
           return 'encryptionPublicKey argument is also required for assertion encryption';
         }
-      }
-
-      if (argv.encryptionPublicKey) {
         if (argv.encryptionCert === undefined) {
           return 'encryptionCert argument is also required for assertion encryption';
         }
-
-        // Set flag since both file args are present
-        argv.encryptAssertion = true;
       }
       return true;
     })
@@ -233,14 +252,17 @@ function processArgs(options) {
         return 'Encountered an exception while loading SAML attribute config file "' + configFilePath + '".\n' + error;
       }
       return true;
-    });
+    })
+    .wrap(yargs.terminalWidth());
 }
 
 
 function _runServer(argv) {
-  var app                 = express(),
-      blocks              = {},
-      httpServer;
+  const app = express();
+  const httpServer = argv.https ?
+    https.createServer({ key: argv.httpsPrivateKey, cert: argv.httpsCert }, app) :
+    http.createServer(app);
+  const blocks = {};
 
   console.log();
   console.log('Listener Port:\n\t' + argv.port);
@@ -260,7 +282,7 @@ function _runServer(argv) {
 
   SimpleProfileMapper.prototype.metadata = argv.config.metadata;
 
-  var idpOptions = {
+  const idpOptions = {
     issuer:                 argv.issuer,
     cert:                   argv.cert,
     key:                    argv.key,
@@ -275,9 +297,10 @@ function _runServer(argv) {
     signResponse:           argv.signResponse,
     encryptAssertion:       argv.encryptAssertion,
     encryptionAlgorithm:    'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
-    keyEncryptionAlgorighm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
+    keyEncryptionAlgorithm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
     lifetimeInSeconds:      3600,
     authnContextClassRef:   'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    includeAttributeNameFormat: true,
     profileMapper:          SimpleProfileMapper,
     getUserFromRequest:     function(req) { return req.user; },
     getPostURL:             function (audience, authnRequestDom, req, callback) {
@@ -304,30 +327,29 @@ function _runServer(argv) {
 
   // Register Helpers
   hbs.registerHelper('extend', function(name, context) {
-      var block = blocks[name];
-      if (!block) {
-          block = blocks[name] = [];
-      }
+    var block = blocks[name];
+    if (!block) {
+      block = blocks[name] = [];
+    }
 
-      block.push(context.fn(this));
+    block.push(context.fn(this));
   });
 
   hbs.registerHelper('block', function(name) {
-      var val = (blocks[name] || []).join('\n');
-      // clear the block
-      blocks[name] = [];
-      return val;
+    const val = (blocks[name] || []).join('\n');
+    // clear the block
+    blocks[name] = [];
+    return val;
   });
 
 
   hbs.registerHelper('select', function(selected, options) {
-      return options.fn(this).replace(
-          new RegExp(' value=\"' + selected + '\"'),
-          '$& selected="selected"');
+    return options.fn(this).replace(
+      new RegExp(' value=\"' + selected + '\"'), '$& selected="selected"');
   });
 
   hbs.registerHelper('getProperty', function(attribute, context) {
-      return context[attribute];
+    return context[attribute];
   });
 
   hbs.registerHelper('serialize', function(context) {
@@ -342,6 +364,13 @@ function _runServer(argv) {
   app.use(bodyParser.urlencoded({extended: true}))
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
+  app.use(session({
+    secret: 'The universe works on a math equation that never even ever really ends in the end',
+    resave: false,
+    saveUninitialized: true,
+    name: 'idp_sid',
+    cookie: { maxAge: 60000 }
+  }));
 
 
   /**
@@ -390,7 +419,18 @@ function _runServer(argv) {
    */
 
   app.use(function(req, res, next){
+    if (argv.rollSession) {
+      req.session.regenerate(function(err) {
+        return next();
+      });
+    } else {
+      next()
+    }
+  });
+
+  app.use(function(req, res, next){
     req.user = argv.config.user;
+    req.user.sessionIndex = Math.abs(getHashCode(req.session.id));
     req.metadata = argv.config.metadata;
     req.idp = { options: idpOptions };
     next();
@@ -400,8 +440,7 @@ function _runServer(argv) {
   app.post(['/', '/idp'], parseSamlRequest);
 
   app.post('/sso', function(req, res) {
-    var authOptions = extend({}, req.idp.options);
-    console.log('here');
+    const authOptions = extend({}, req.idp.options);
     Object.keys(req.body).forEach(function(key) {
       var buffer;
       if (key === '_authnRequest') {
@@ -429,8 +468,12 @@ function _runServer(argv) {
       delete authOptions.encryptionPublicKey;
     }
 
+    // Set Session Index
+    authOptions.sessionIndex = req.user.sessionIndex;
+
     // Keep calm and Single Sign On
-    console.log('Sending Assertion with Options => \n', authOptions);
+    console.log('Sending SAML Response\nUser => \n%s\nOptions => \n',
+      JSON.stringify(req.user, null, 2), authOptions);
     samlp.auth(authOptions)(req, res);
   })
 
@@ -441,7 +484,7 @@ function _runServer(argv) {
   app.post('/metadata', function(req, res, next) {
     if (req.body && req.body.attributeName && req.body.displayName) {
       var attributeExists = false;
-      var attribute = {
+      const attribute = {
         id: req.body.attributeName,
         optional: true,
         displayName: req.body.displayName,
@@ -462,6 +505,15 @@ function _runServer(argv) {
       console.log("Updated SAML Attribute Metadata => \n", req.metadata)
       res.status(200).end();
     }
+  });
+
+  app.get('/signout', function(req, res, next) {
+    req.session.destroy(function(err) {
+      if (err) {
+        throw err;
+      }
+      res.redirect('back');
+    })
   });
 
   app.get(['/settings'], function(req, res, next) {
@@ -495,7 +547,7 @@ function _runServer(argv) {
 
   // catch 404 and forward to error handler
   app.use(function(req, res, next) {
-    var err = new Error('Route Not Found');
+    const err = new Error('Route Not Found');
     err.status = 404;
     next(err);
   });
@@ -515,28 +567,30 @@ function _runServer(argv) {
    * Start IdP Web Server
    */
 
-  console.log('starting server...');
-  httpServer = argv.https ?
-    https.createServer({ key: argv.httpsPrivateKey, cert: argv.httpsCert }, app) :
-    http.createServer(app);
-
+  console.log('starting idp server on port %s', app.get('port'));
 
   httpServer.listen(app.get('port'), function() {
-    var scheme   = argv.https ? 'https' : 'http',
+    const scheme   = argv.https ? 'https' : 'http',
         address  = httpServer.address(),
         hostname = os.hostname();
         baseUrl  = address.address === '0.0.0.0' || address.address === '::' ?
           scheme + '://' + hostname + ':' + address.port :
           scheme + '://localhost:' + address.port;
 
-    console.log('listening on port: ' + app.get('port'));
     console.log();
-    console.log('SAML IdP Metadata: ');
+    console.log('SAML IdP Metadata URL: ');
     console.log('\t=> ' + baseUrl + '/metadata');
+    console.log();
+    console.log('Bindings: ');
+    console.log();
     console.log('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
     console.log('\t=> ' + baseUrl + '/idp')
     console.log('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
     console.log('\t=> ' + baseUrl + '/idp')
+    console.log();
+    console.log();
+    console.log('idp server ready');
+    console.log('\t=> ' + baseUrl);
     console.log();
   });
 }

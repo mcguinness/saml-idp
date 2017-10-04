@@ -18,15 +18,15 @@
     <nav class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
-        <a class="navbar-brand" href="/metadata"><i class="fa fa-key"><span>Simple SAML Identity Provider</span></i></a>
-
-          {{#if idp}}
-          <p class="navbar-text">{{idp.issuer}}</p>
-          {{/if}}
+        <a class="navbar-brand" href="/metadata"><i class="fa fa-key"><span>Simple SAML Identity Provider ({{idp.issuer}})</span></i></a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-left">
+            <li><a href="/metadata"><i class="fa fa-file-code-o"><span>IdP Metadata</span></i></a></li>
+          </ul>
           <ul class="nav navbar-nav navbar-right">
-          <li class="active"><a href="/settings"><i class="fa fa-cog"><span>Settings</span></i></a></li>
+            <li><a href="/signout"><i class="fa fa-sign-out"><span>New Session</span></i></a></li>
+            <li class="active"><a href="/settings"><i class="fa fa-cog"><span>Settings</span></i></a></li>
           </ul>
         </div><!--/.nav-collapse -->
     </nav>

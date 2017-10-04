@@ -2,18 +2,20 @@
   "name": "saml-idp",
   "private": true,
   "dependencies": {
-    "bootstrap-tagsinput": "~0.4.2",
-    "jquery": "~2.1.3",
-    "bootstrap": "~3.3.2",
-    "fontawesome": "~4.3.0",
-    "underscore": "~1.8.2",
-    "jquery-validation": "~1.13.1"
+    "bootstrap-tagsinput": "0.8.0",
+    "jquery": "3.2.1",
+    "bootstrap": "3.3.7",
+    "fontawesome": "4.7.0",
+    "underscore": "1.8.3",
+    "jquery-validation": "1.17.0"
   },
-  "version": "0.5.1",
-  "homepage": "https://github.com/mcguinness/saml-idp",
   "authors": [
     "Karl McGuinness"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcguinness/saml-idp"
+  },
   "license": "MIT",
   "ignore": [
     "**/.*",
@@ -21,5 +23,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "resolutions": {
+    "jquery": "3.2.1"
+  }
 }
