@@ -429,6 +429,8 @@ function _runServer(argv) {
       delete authOptions.encryptionPublicKey;
     }
 
+    authOptions.sessionIndex = 1
+
     // Keep calm and Single Sign On
     console.log('Sending Assertion with Options => \n', authOptions);
     samlp.auth(authOptions)(req, res);
