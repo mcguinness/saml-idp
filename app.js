@@ -324,6 +324,7 @@ function _runServer(argv) {
   app.set('view engine', 'hbs');
   app.set('view options', { layout: 'layout' })
   app.engine('handlebars', hbs.__express);
+  app.use('/bower_components', express.static(__dirname + '/bower_components'))
 
   // Register Helpers
   hbs.registerHelper('extend', function(name, context) {
