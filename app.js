@@ -380,8 +380,8 @@ function _runServer(argv) {
 
   const showUser = function (req, res, next) {
     res.render('user', {
-      user: req.user,
-      presets: req.presets,
+      user: req.user || req.presets[0],
+      presets: req.presets || [req.user],
       metadata: req.metadata,
       authnRequest: req.authnRequest,
       idp: req.idp.options
