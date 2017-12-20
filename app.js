@@ -8,6 +8,7 @@ const express             = require('express'),
       fs                  = require('fs'),
       http                = require('http'),
       https               = require('https'),
+      basicauth           = require('express-basic-auth'),
       path                = require('path'),
       extend              = require('extend'),
       hbs                 = require('hbs'),
@@ -223,6 +224,17 @@ function processArgs(options) {
         required: false,
         boolean: true,
         default: false
+      },
+      bascicUser: {
+        description: 'basic authentication user',
+        required: false,
+        alias: 'user'
+      },
+      bascicPass: {
+        description: 'basic authentication password',
+        required: false,
+        default: '',
+        alias: 'pass'
       }
     })
     .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
@@ -274,6 +286,16 @@ function _runServer(argv) {
   console.log('Allow SP to Specify ACS URLs:\n\t' + !argv.disableRequestAcsUrl);
   console.log('Assertion Encryption:\n\t' + argv.encryptAssertion);
   console.log('Sign Response:\n\t' + argv.signResponse);
+  if (argv.bascicUser) {
+    var users = {};
+    users[argv.bascicUser] = argv.bascicPass;
+    console.log('BASIC Auth User:\n\t' + argv.bascicUser);
+    app.use(basicauth({
+      users: users,
+      challenge: true,
+      realm: 's3pJw9oDjq'
+    }));
+  }
   console.log();
 
   /**

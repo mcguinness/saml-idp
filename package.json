@@ -31,6 +31,7 @@
     "cookie-parser": "~1.4.3",
     "debug": "~3.0.1",
     "express": "~4.15.4",
+    "express-basic-auth": "^1.1.3",
     "express-session": "^1.15.6",
     "extend": "^3.0.1",
     "hbs": "~4.0.1",
