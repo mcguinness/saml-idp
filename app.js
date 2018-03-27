@@ -489,7 +489,7 @@ function _runServer(argv) {
         id: req.body.attributeName,
         optional: true,
         displayName: req.body.displayName,
-        description: req.body.discription || '',
+        description: req.body.description || '',
         multiValue: req.body.valueType === 'multi'
       };
 
