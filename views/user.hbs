@@ -165,7 +165,11 @@
                   {{/each}}
                   </select>
                   {{else}}
-                  <input class="form-control" id="{{this.id}}" name="{{this.id}}" placeholder="Attribute value" type="text" value="{{getProperty this.id ../user}}">
+                    {{#if this.multiValue}}
+                      <input class="form-control" id="{{this.id}}" name="{{this.id}}" placeholder="Attribute value" type="text" value="{{getProperty this.id ../user}}" data-role="tagsinput">
+                    {{else}}
+                      <input class="form-control" id="{{this.id}}" name="{{this.id}}" placeholder="Attribute value" type="text" value="{{getProperty this.id ../user}}">
+                    {{/if}}
                   {{/if}}
                 </div>
               </div>
@@ -256,10 +260,6 @@ $(document).ready(function() {
        });
      }
    })
-
-   $('#groups').tagsinput({
-     allowDuplicates: false
-   });
 
    $('a[data-toggle=collapse]').click(function() {
      $(this).find('i.indicator').toggleClass('fa-chevron-circle-down fa-chevron-circle-up');
