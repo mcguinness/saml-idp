@@ -296,6 +296,8 @@ function _runServer(argv) {
     signatureAlgorithm:     'rsa-sha256',
     signResponse:           argv.signResponse,
     encryptAssertion:       argv.encryptAssertion,
+    encryptionCert:	    argv.encryptionCert,
+    encryptionPublicKey:    argv.encryptionPublicKey,
     encryptionAlgorithm:    'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
     keyEncryptionAlgorithm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
     lifetimeInSeconds:      3600,
