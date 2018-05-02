@@ -382,7 +382,8 @@ function _runServer(argv) {
 
   const showUser = function (req, res, next) {
     res.render('user', {
-      user: req.user,
+      user: req.user || req.presets[0],
+      presets: req.presets || [req.user],
       metadata: req.metadata,
       authnRequest: req.authnRequest,
       idp: req.idp.options
@@ -434,6 +435,7 @@ function _runServer(argv) {
   app.use(function(req, res, next){
     req.user = argv.config.user;
     req.user.sessionIndex = Math.abs(getHashCode(req.session.id));
+    req.presets = argv.config.presets;
     req.metadata = argv.config.metadata;
     req.idp = { options: idpOptions };
     next();
@@ -469,6 +471,12 @@ function _runServer(argv) {
     if (!authOptions.encryptAssertion) {
       delete authOptions.encryptionCert;
       delete authOptions.encryptionPublicKey;
+    }
+
+    if(req.body.preset) {
+      req.user = req.presets.find(function(u) {
+        return u.userName === req.body.preset;
+      });
     }
 
     // Set Session Index

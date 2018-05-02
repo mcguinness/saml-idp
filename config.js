@@ -1,17 +1,35 @@
 
 /**
- * User Profile
+ * User Profiles
  */
-var profile = {
-  userName: 'saml.jackson@example.com',
+var presets = [{
+  userName: 'saml_1.jackson@example.com',
   nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-  firstName: 'Saml',
+  firstName: 'Saml 1',
   lastName: 'Jackson',
-  displayName: 'saml jackson',
-  email: 'saml.jackson@example.com',
+  displayName: 'saml1 jackson',
+  email: 'saml1.jackson@example.com',
   mobilePhone: '+1-415-555-5141',
   groups: 'Simple IdP Users, West Coast Users, Cloud Users'
-}
+},{
+  userName: 'saml_2.jackson@example.com',
+  nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+  firstName: 'Saml 2',
+  lastName: 'Jackson',
+  displayName: 'saml2 jackson',
+  email: 'saml2.jackson@example.com',
+  mobilePhone: '+1-415-555-5141',
+  groups: 'Simple IdP Users, West Coast Users, Cloud Users'
+},{
+  userName: 'saml_3.jackson@example.com',
+  nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+  firstName: 'Saml 3',
+  lastName: 'Jackson',
+  displayName: 'saml3 jackson',
+  email: 'saml3.jackson@example.com',
+  mobilePhone: '+1-415-555-5141',
+  groups: 'Simple IdP Users, West Coast Users, Cloud Users'
+}]
 
 /**
  * SAML Attribute Metadata
@@ -61,6 +79,7 @@ var metadata = [{
 }];
 
 module.exports = {
-  user: profile,
+  user: presets[0],
+  presets: presets,
   metadata: metadata
 }
