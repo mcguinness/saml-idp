@@ -1,6 +1,6 @@
 # Introduction
 
-This app provides a simple Identity Provider (IdP) to test SAML 2.0 Service Providers (SPs) with the [SAML 2.0 Web Browser SSO Profile](http://en.wikipedia.org/wiki/SAML_2.0#Web_Browser_SSO_Profile).
+This app provides a simple SAML Identity Provider (IdP) to test SAML 2.0 Service Providers (SPs) with the [SAML 2.0 Web Browser SSO Profile](http://en.wikipedia.org/wiki/SAML_2.0#Web_Browser_SSO_Profile) or the Single Logout Profile.
 
 > **This sample is not intended for use with production systems!**
 
@@ -18,8 +18,14 @@ Simply modify Dockerfile to specify your own parameters.
 
 ### Usage
 
+#### SSO Profile
 ```
 node app.js --acs {POST URL} --aud {audience}
+```
+
+#### SSO & SLO Profile
+```
+node app.js --acs {POST URL} --slo {POST URL} --aud {audience}
 ```
 
 Open `http://localhost:7000` in your browser to start an IdP initiated flow to your SP
@@ -35,17 +41,28 @@ node app.js --acs https://foo.okta.com/auth/saml20/example --aud https://www.okt
 Most parameters can be defined with the following command-line arguments:
 
 ```
-  --port, -p                        Web Server Listener Port                                                                             [required]  [default: 7000]
-  --issuer, --iss                   IdP Issuer URI                                                                                       [required]  [default: "urn:example:idp"]
-  --acsUrl, --acs                   SP Assertion Consumer URL                                                                            [required]
-  --audience, --aud                 SP Audience URI                                                                                      [required]
+Options:
+  --help                            Show help                                                                                                                         [boolean]
+  --version                         Show version number                                                                                                               [boolean]
+  --settings                        Path to JSON config file
+  --port, -p                        Web Server Listener Port                                                                                         [required] [default: 7000]
+  --cert                            IdP Signature PublicKey Certificate                                                           [required] [default: "./idp-public-cert.pem"]
+  --key                             IdP Signature PrivateKey Certificate                                                          [required] [default: "./idp-private-key.pem"]
+  --issuer, --iss                   IdP Issuer URI                                                                                      [required] [default: "urn:example:idp"]
+  --acsUrl, --acs                   SP Assertion Consumer URL                                                                                                        [required]
+  --sloUrl, --slo                   SP Single Logout URL
+  --audience, --aud                 SP Audience URI                                                                                                                  [required]
+  --serviceProviderId, --spId       SP Issuer/Entity URI                                                                                                               [string]
   --relayState, --rs                Default SAML RelayState for SAMLResponse
-  --disableRequestAcsUrl, --static  Disables ability for SP AuthnRequest to specify Assertion Consumer URL                               [default: false]
-  --encryptionCert, --encCert       SP Certificate (pem) for Assertion Encryption
-  --encryptionPublicKey, --encKey   SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem)
-  --httpsPrivateKey                 Web Server TLS/SSL Private Key (pem)
-  --httpsCert                       Web Server TLS/SSL Certificate (pem)
-  --https                           Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                      [required]  [default: false]
+  --disableRequestAcsUrl, --static  Disables ability for SP AuthnRequest to specify Assertion Consumer URL                                           [boolean] [default: false]
+  --encryptAssertion, --enc         Encrypts assertion with SP Public Key                                                                            [boolean] [default: false]
+  --encryptionCert, --encCert       SP Certificate (pem) for Assertion Encryption                                                                                      [string]
+  --encryptionPublicKey, --encKey   SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem)                                [string]
+  --httpsPrivateKey                 Web Server TLS/SSL Private Key (pem)                                                                                               [string]
+  --httpsCert                       Web Server TLS/SSL Certificate (pem)                                                                                               [string]
+  --https                           Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                       [boolean] [required] [default: false]
+  --configFile, --conf              Path to a SAML attribute config file                                             [required] [default: "/Users/karl/src/saml-idp/config.js"]
+  --rollSession                     Create a new session for every authn request instead of reusing an existing session                              [boolean] [default: false]
 ```
 
 # IdP SAML Settings
@@ -54,22 +71,40 @@ Most parameters can be defined with the following command-line arguments:
 
 The default IdP issuer is `urn:example:idp`.  You can change this with the `--iss` argument.
 
-## Binding
-
-Both SSO POST and Redirect bindings are available on the same endpoint which by default is `http://localhost:7000`
-
-Binding       | URL
-------------- | --------------------------------------------------------
-HTTP-Redirect | `http://localhost:port`
-HTTP-POST     | `http://localhost:port`
-
-> http://localhost:port/idp will also work if your SP has weird URL validation rules
-
 ## Signing Certificate
 
 You must generate a self-signed certificate for the IdP.
 
     openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300
+
+The signing certificate public key must be sepcified as a file path or PEM string using the `cert` argument
+The signing certificate private key must be sepcified as a file path or PEM string using the `key` argument
+
+### Passing key/cert pairs from environment variables
+
+Signing certificate key/cert pairs can also be passed from environment variables.
+
+```
+node app.js --acs {POST URL} --aud {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
+```
+
+## Single Sign-On Service Binding
+
+Both SSO POST and Redirect bindings are available on the same endpoint which by default is `http://localhost:7000/saml/sso`
+
+Binding       | URL
+------------- | --------------------------------------------------------
+HTTP-Redirect | `http://localhost:port/saml/sso`
+HTTP-POST     | `http://localhost:port/saml/sso`
+
+## Single Logout Service Binding
+
+Both SSO POST and Redirect bindings are available on the same endpoint which by default is `http://localhost:7000/saml/slo`
+
+Binding       | URL
+------------- | --------------------------------------------------------
+HTTP-Redirect | `http://localhost:port/saml/slo`
+HTTP-POST     | `http://localhost:port/saml/slo`
 
 ## SAML Metadata
 
@@ -160,11 +195,3 @@ PEM files that contain the header `-----BEGIN CERTIFICATE-----` can also be conv
 
 `openssl x509 -pubkey -noout -in cert.pem > pub.key`
 
-
-## Passing key/cert pairs from environment variables
-
-Key/cert pairs can also be passed from environment variables.
-
-```
-node app.js --acs {POST URL} --aud {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
-```

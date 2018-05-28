@@ -5,13 +5,13 @@
         <h3 class="panel-title">Identity Provider Settings</h3>
       </div>
       <div class="panel-body">
-        
+
         <div class="form-group">
           <label for="issuer" class="col-sm-3 control-label">Issuer</label>
           <div class="col-sm-9">
             <input id="issuer" class="form-control" name="issuer" type="text" required="" value="{{idp.issuer}}">
           </div>
-        </div>   
+        </div>
 
         <div class="form-group">
           <label for="signatureAlgorithm" class="col-sm-3 control-label">Signature Algorithm</label>
@@ -89,7 +89,7 @@
               {{/select}}
             </select>
           </div>
-        </div>        
+        </div>
 
         <div class="form-group">
           <label for="allowRequestAcsUrl" class="col-sm-3 control-label control-label-break">Allow Dynamic Assertion Consumer Service URL</label>
@@ -113,6 +113,20 @@
       <div class="panel-body">
 
         <div class="form-group">
+          <label for="serviceProviderId" class="col-sm-3 control-label">Issuer URI</label>
+          <div class="col-sm-9">
+            <input id="serviceProviderId" class="form-control" name="serviceProviderId" type="text" required="" value="{{idp.serviceProviderId}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="sloUrl" class="col-sm-3 control-label control-label-break">Single Logout Service URL</label>
+          <div class="col-sm-9">
+            <input id="sloUrl" class="form-control" name="sloUrl" type="url" required="" value="{{idp.sloUrl}}">
+          </div>
+        </div>
+
+        <div class="form-group">
           <label for="acsUrl" class="col-sm-3 control-label control-label-break">Assertion Consumer Service URL</label>
           <div class="col-sm-9">
             <input id="acsUrl" class="form-control" name="acsUrl" type="url" required="" value="{{idp.acsUrl}}">
@@ -120,14 +134,14 @@
         </div>
 
         <div class="form-group">
-          <label for="destination" class="col-sm-3 control-label">Destination</label>
+          <label for="destination" class="col-sm-3 control-label">Assertion Consumer Service Destination</label>
           <div class="col-sm-9">
             <input id="destination" class="form-control" name="destination" type="url" required="" value="{{idp.destination}}">
           </div>
-        </div>        
+        </div>
 
         <div class="form-group">
-          <label for="recipient" class="col-sm-3 control-label">Recipient</label>
+          <label for="recipient" class="col-sm-3 control-label">Assertion Consumer Service Recipient</label>
           <div class="col-sm-9">
             <input id="recipient" class="form-control" name="recipient" type="url" required="" value="{{idp.recipient}}">
           </div>
@@ -145,7 +159,7 @@
           <div class="col-sm-9">
             <input id="relayState" class="form-control" name="RelayState" type="text" value="{{idp.RelayState}}">
           </div>
-        </div>        
+        </div>
 
       </div>
     </div>
@@ -153,7 +167,7 @@
     <div class="form-group">
       <div class="col-md-12 text-right">
         <a href="/" class="btn btn-default input-xlarge">Cancel</a>
-        <button type="submit" class="btn btn-default input-xlarge">Save</button>
+        <button type="submit" class="btn btn-default btn-primary input-xlarge">Save</button>
       </div>
     </div>
 
