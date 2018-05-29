@@ -36,6 +36,7 @@
     "hbs": "~4.0.1",
     "morgan": "~1.9.0",
     "samlp": "3.4.0",
+    "xml-formatter": "^1.0.1",
     "yargs": "^11.0.0"
   },
   "devDependencies": {

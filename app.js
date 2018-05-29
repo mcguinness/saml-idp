@@ -16,6 +16,7 @@ const express             = require('express'),
       bodyParser          = require('body-parser'),
       session             = require('express-session'),
       yargs               = require('yargs'),
+      xmlFormat           = require('xml-formatter'),
       samlp               = require('samlp'),
       SessionParticipants = require('samlp/lib/sessionParticipants'),
       SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
@@ -345,6 +346,17 @@ function _runServer(argv) {
                               return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ?
                                 req.authnRequest.acsUrl :
                                 argv.acsUrl);
+                            },
+    responseHandler:        function(response, opts, req, res, next) {
+                              console.log();
+                              console.log(`Sending SAMLResponse to ${opts.postUrl} with RelayState ${opts.RelayState} =>\n`);
+                              console.log(xmlFormat(response.toString(), {indentation: '  '}));
+                              console.log();
+                              res.render('samlresponse', {
+                                AcsUrl: opts.postUrl,
+                                SAMLResponse: response.toString('base64'),
+                                RelayState: opts.RelayState
+                              });
                             }
   }
 
