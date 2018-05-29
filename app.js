@@ -15,9 +15,9 @@ const express             = require('express'),
       cookieParser        = require('cookie-parser'),
       bodyParser          = require('body-parser'),
       session             = require('express-session'),
-      samlp               = require('samlp'),
       yargs               = require('yargs'),
-      SessionParticipants = require('samlp/lib/sessionParticipants');
+      samlp               = require('samlp'),
+      SessionParticipants = require('samlp/lib/sessionParticipants'),
       SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 
 /**
@@ -335,10 +335,11 @@ function _runServer(argv) {
     profileMapper:          SimpleProfileMapper,
     postEndpointPath:       IDP_PATHS.SSO,
     redirectEndpointPath:   IDP_PATHS.SSO,
-    logoutEndpointPaths:    {
+    logoutEndpointPaths:    argv.sloUrl ?
+                            {
                               redirect: IDP_PATHS.SLO,
                               post: IDP_PATHS.SLO
-                            },
+                            } : {},
     getUserFromRequest:     function(req) { return req.user; },
     getPostURL:             function (audience, authnRequestDom, req, callback) {
                               return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ?
@@ -422,7 +423,7 @@ function _runServer(argv) {
   const showUser = function (req, res, next) {
     res.render('user', {
       user: req.user,
-      sessionIndex: getSessionIndex(req),
+      participant: req.participant,
       metadata: req.metadata,
       authnRequest: req.authnRequest,
       idp: req.idp.options,
@@ -463,6 +464,16 @@ function _runServer(argv) {
     }
   }
 
+  const getParticipant = function(req) {
+    return {
+      serviceProviderId: req.idp.options.serviceProviderId,
+      sessionIndex: getSessionIndex(req),
+      nameId: req.user.userName,
+      nameIdFormat: req.user.nameIdFormat,
+      serviceProviderLogoutURL: req.idp.options.sloUrl
+    }
+  }
+
   const parseLogoutRequest = function(req, res, next) {
     if (!req.idp.options.sloUrl) {
       return res.render('error', {
@@ -470,14 +481,7 @@ function _runServer(argv) {
       });
     };
 
-    const participant = {
-      serviceProviderId: req.idp.options.serviceProviderId,
-      sessionIndex: getSessionIndex(req),
-      nameId: req.user.userName,
-      nameIdFormat: req.user.nameIdFormat,
-      serviceProviderLogoutURL: req.idp.options.sloUrl
-    }
-    console.log('Processing SAML SLO request for participant => \n', participant);
+    console.log('Processing SAML SLO request for participant => \n', req.participant);
 
     return samlp.logout({
       cert:                   req.idp.options.cert,
@@ -486,10 +490,10 @@ function _runServer(argv) {
       signatureAlgorithm:     req.idp.options.signatureAlgorithm,
       sessionParticipants:    new SessionParticipants(
       [
-        participant
+        req.participant
       ]),
       clearIdPSession: function(callback) {
-        console.log('Destroying session ' + req.session.id + ' for participant', participant);
+        console.log('Destroying session ' + req.session.id + ' for participant', req.participant);
         req.session.destroy();
         callback();
       }
@@ -514,6 +518,7 @@ function _runServer(argv) {
     req.user = argv.config.user;
     req.metadata = argv.config.metadata;
     req.idp = { options: idpOptions };
+    req.participant = getParticipant(req);
     next();
   });
 
@@ -679,13 +684,15 @@ function _runServer(argv) {
     console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
     console.log('\t\t=> ' + baseUrl + IDP_PATHS.SSO);
     console.log();
-    console.log('SLO Bindings: ');
-    console.log();
-    console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
-    console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
-    console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-    console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
-    console.log();
+    if (argv.sloUrl) {
+      console.log('SLO Bindings: ');
+      console.log();
+      console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
+      console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
+      console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+      console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
+      console.log();
+    }
     console.log('idp server ready');
     console.log('\t=> ' + baseUrl);
     console.log();
