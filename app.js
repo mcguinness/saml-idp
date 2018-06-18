@@ -18,6 +18,7 @@ const express             = require('express'),
       yargs               = require('yargs'),
       xmlFormat           = require('xml-formatter'),
       samlp               = require('samlp'),
+      Parser              = require('xmldom').DOMParser,
       SessionParticipants = require('samlp/lib/sessionParticipants'),
       SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 
@@ -246,6 +247,25 @@ function processArgs(options) {
         required: false,
         boolean: true,
         default: false
+      },
+      authnContextClassRef: {
+        description: 'Authentication Context Class Reference',
+        required: false,
+        string: true,
+        default: 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+        alias: 'acr'
+      },
+      authnContextDecl: {
+        description: 'Authentication Context Declaration (XML FilePath)',
+        required: false,
+        string: true,
+        alias: 'acd',
+        coerce: function (value) {
+          const filePath = resolveFilePath(value);
+          if (filePath) {
+            return fs.readFileSync(filePath, 'utf8')
+          }
+        }
       }
     })
     .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
@@ -289,18 +309,26 @@ function _runServer(argv) {
 
   console.log();
   console.log('Listener Port:\n\t' + argv.port);
-  console.log('HTTPS Listener:\n\t' + argv.https);
-  console.log('IdP Issuer URI:\n\t' + argv.issuer);
+  console.log('HTTPS Enabled:\n\t' + argv.https);
   console.log();
-  console.log('SP Issuer URI:\n\t' + argv.serviceProviderId);
-  console.log('SP Audience URI:\n\t' + argv.audience);
-  console.log('SP ACS URL:\n\t' + argv.acsUrl);
-  console.log('SP SLO URL:\n\t' + argv.sloUrl);
+  console.log('[IdP]');
   console.log();
+  console.log('Issuer URI:\n\t' + argv.issuer);
+  console.log('Sign Response Message:\n\t' + argv.signResponse);
+  console.log('Encrypt Assertion:\n\t' + argv.encryptAssertion);
+  console.log('Authentication Context Class Reference:\n\t' + argv.authnContextClassRef);
+  console.log('Authentication Context Declaration:\n\n' + argv.authnContextDecl);
   console.log('Default RelayState:\n\t' + argv.relayState);
-  console.log('Allow SP to Specify ACS URLs:\n\t' + !argv.disableRequestAcsUrl);
-  console.log('Assertion Encryption:\n\t' + argv.encryptAssertion);
-  console.log('Sign Response:\n\t' + argv.signResponse);
+  console.log();
+  console.log('[SP]');
+  console.log();
+  console.log('Issuer URI:\n\t' + argv.serviceProviderId);
+  console.log('Audience URI:\n\t' + argv.audience);
+  console.log('ACS URL:\n\t' + argv.acsUrl);
+  console.log('SLO URL:\n\t' + argv.sloUrl);
+  console.log('Trust ACS URL in Request:\n\t' + !argv.disableRequestAcsUrl);
+  console.log();
+
   console.log();
 
 
@@ -331,7 +359,8 @@ function _runServer(argv) {
     encryptionAlgorithm:    'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
     keyEncryptionAlgorithm: 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
     lifetimeInSeconds:      3600,
-    authnContextClassRef:   'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    authnContextClassRef:   argv.authnContextClassRef,
+    authnContextDecl:       argv.authnContextDecl,
     includeAttributeNameFormat: true,
     profileMapper:          SimpleProfileMapper,
     postEndpointPath:       IDP_PATHS.SSO,
@@ -346,6 +375,22 @@ function _runServer(argv) {
                               return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ?
                                 req.authnRequest.acsUrl :
                                 argv.acsUrl);
+                            },
+    transformAssertion:     function(assertionDom) {
+                              if (argv.authnContextDecl) {
+                                var declDoc;
+                                try {
+                                  declDoc = new Parser().parseFromString(argv.authnContextDecl);
+                                } catch(err){
+                                  console.log('Unable to parse Authentication Context Declaration XML', err);
+                                }
+                                if (declDoc) {
+                                  const authnContextDeclEl = assertionDom.createElementNS('urn:oasis:names:tc:SAML:2.0:assertion', 'saml:AuthnContextDecl');
+                                  authnContextDeclEl.appendChild(declDoc.documentElement);
+                                  const authnContextEl = assertionDom.getElementsByTagName('saml:AuthnContext')[0];
+                                  authnContextEl.appendChild(authnContextDeclEl);
+                                }
+                              }
                             },
     responseHandler:        function(response, opts, req, res, next) {
                               console.log();

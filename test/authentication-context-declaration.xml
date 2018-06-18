@@ -1,0 +1,17 @@
+<ac:AuthenticationContextDeclaration xmlns:ac="urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport">
+  <ac:AuthnMethod>
+    <ac:Authenticator>
+      <ac:RestrictedPassword>
+        <ac:Length min="4"/>
+        <ac:Generation mechanism="principalchosen" />
+      </ac:RestrictedPassword>
+    </ac:Authenticator>
+    <ac:AuthenticatorTransportProtocol>
+      <ac:SSL>
+        <ac:Extension />
+      </ac:SSL>
+      <ac:Extension />
+    </ac:AuthenticatorTransportProtocol>
+  </ac:AuthnMethod>
+  <ac:Extension />
+</ac:AuthenticationContextDeclaration>
