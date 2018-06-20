@@ -15,7 +15,7 @@ const express             = require('express'),
       cookieParser        = require('cookie-parser'),
       bodyParser          = require('body-parser'),
       session             = require('express-session'),
-      yargs               = require('yargs'),
+      yargs               = require('yargs/yargs'),
       xmlFormat           = require('xml-formatter'),
       samlp               = require('samlp'),
       Parser              = require('xmldom').DOMParser,
@@ -114,15 +114,15 @@ function getHashCode(str) {
 /**
  * Arguments
  */
-function processArgs(options) {
+function processArgs(args, options) {
   var baseArgv;
   console.log();
   console.log('loading configuration...');
 
   if (options) {
-    baseArgv = yargs.config(options);
+    baseArgv = yargs(args).config(options);
   } else {
-    baseArgv = yargs.config('settings', function(settingsPathArg) {
+    baseArgv = yargs(args).config('settings', function(settingsPathArg) {
       const settingsPath = resolveFilePath(settingsPathArg);
       return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
     });
@@ -296,7 +296,7 @@ function processArgs(options) {
       }
       return true;
     })
-    .wrap(yargs.terminalWidth());
+    .wrap(baseArgv.terminalWidth());
 }
 
 
@@ -757,12 +757,12 @@ function _runServer(argv) {
 }
 
 function runServer(options) {
-  const args = processArgs(options);
-  return _runServer(args.parse([]));
+  const args = processArgs([], options);
+  return _runServer(args.argv);
 }
 
 function main () {
-  const args = processArgs();
+  const args = processArgs(process.argv.slice(2));
   _runServer(args.argv);
 }
 
