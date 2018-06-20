@@ -4,22 +4,17 @@ This app provides a simple SAML Identity Provider (IdP) to test SAML 2.0 Service
 
 > **This sample is not intended for use with production systems!**
 
-## Docker Installation and Startup
+## Installation
 
-1. docker-compose build
-2. docker-compose up
-
-Simply modify Dockerfile to specify your own parameters.
-
-## Installation - npm
+### Global Command Line Tool
 
 ``` shell
 npm install --global saml-idp
 ```
 
-## Installation - manual
+### Manual
 
-From inside a local copy of thie repo
+From inside a local copy of this repo
 
 ``` shell
 npm install
@@ -27,21 +22,36 @@ npm install
 npm link
 ```
 
-## Installation - as a library
+### Library
 
 ``` shell
 npm install saml-idp
 ```
 
-## Generating a key / certificate pair
+### Docker
+
+1. docker-compose build
+2. docker-compose up
+
+Simply modify Dockerfile to specify your own parameters.
+
+## Generating IdP Signing Certificate
+
+You must generate a self-signed certificate for the IdP.
+
+> The private key should be unique to your test IdP and not shared!
+
+You can generate a keypair using the following command (requires openssl in your path):
 
 ``` shell
 openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300
 ```
 
-### Usage - as a library
+## Usage
 
-An IDP server can be started using the exported `runServer` function. `runServer` accepts a config object which matches the interface of the `saml-idp` command.
+### Library
+
+An IdP server can be started using the exported `runServer` function. `runServer` accepts a config object which matches the interface of the `saml-idp` command.
 
 ``` javascript
 const {runServer} = require('saml-idp');
@@ -52,7 +62,7 @@ runServer({
 });
 ```
 
-#### with custom user config
+#### Custom user config (claims)
 
 ``` javascript
 const {runServer} = require('saml-idp');
@@ -83,14 +93,16 @@ runServer({
 });
 ```
 
-### Usage - via the included bin
+### Command Line
 
 #### SSO Profile
+
 ``` shell
 saml-idp --acs {POST URL} --aud {audience}
 ```
 
 #### SSO & SLO Profile
+
 ```
 saml-idp --acs {POST URL} --slo {POST URL} --aud {audience}
 ```
@@ -109,27 +121,29 @@ Most parameters can be defined with the following command-line arguments:
 
 ```
 Options:
-  --help                            Show help                                                                                                                         [boolean]
-  --version                         Show version number                                                                                                               [boolean]
+  --help                            Show help                                                                                                                              [boolean]
+  --version                         Show version number                                                                                                                    [boolean]
   --settings                        Path to JSON config file
-  --port, -p                        Web Server Listener Port                                                                                         [required] [default: 7000]
-  --cert                            IdP Signature PublicKey Certificate                                                           [required] [default: "./idp-public-cert.pem"]
-  --key                             IdP Signature PrivateKey Certificate                                                          [required] [default: "./idp-private-key.pem"]
-  --issuer, --iss                   IdP Issuer URI                                                                                      [required] [default: "urn:example:idp"]
-  --acsUrl, --acs                   SP Assertion Consumer URL                                                                                                        [required]
+  --port, -p                        IdP Web Server Listener Port                                                                                          [required] [default: 7000]
+  --cert                            IdP Signature PublicKey Certificate                                                                [required] [default: "./idp-public-cert.pem"]
+  --key                             IdP Signature PrivateKey Certificate                                                               [required] [default: "./idp-private-key.pem"]
+  --issuer, --iss                   IdP Issuer URI                                                                                           [required] [default: "urn:example:idp"]
+  --acsUrl, --acs                   SP Assertion Consumer URL                                                                                                             [required]
   --sloUrl, --slo                   SP Single Logout URL
-  --audience, --aud                 SP Audience URI                                                                                                                  [required]
-  --serviceProviderId, --spId       SP Issuer/Entity URI                                                                                                               [string]
+  --audience, --aud                 SP Audience URI                                                                                                                       [required]
+  --serviceProviderId, --spId       SP Issuer/Entity URI                                                                                                                    [string]
   --relayState, --rs                Default SAML RelayState for SAMLResponse
-  --disableRequestAcsUrl, --static  Disables ability for SP AuthnRequest to specify Assertion Consumer URL                                           [boolean] [default: false]
-  --encryptAssertion, --enc         Encrypts assertion with SP Public Key                                                                            [boolean] [default: false]
-  --encryptionCert, --encCert       SP Certificate (pem) for Assertion Encryption                                                                                      [string]
-  --encryptionPublicKey, --encKey   SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem)                                [string]
-  --httpsPrivateKey                 Web Server TLS/SSL Private Key (pem)                                                                                               [string]
-  --httpsCert                       Web Server TLS/SSL Certificate (pem)                                                                                               [string]
-  --https                           Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                       [boolean] [required] [default: false]
-  --configFile, --conf              Path to a SAML attribute config file                                             [required] [default: "/Users/karl/src/saml-idp/config.js"]
-  --rollSession                     Create a new session for every authn request instead of reusing an existing session                              [boolean] [default: false]
+  --disableRequestAcsUrl, --static  Disables ability for SP AuthnRequest to specify Assertion Consumer URL                                                [boolean] [default: false]
+  --encryptAssertion, --enc         Encrypts assertion with SP Public Key                                                                                 [boolean] [default: false]
+  --encryptionCert, --encCert       SP Certificate (pem) for Assertion Encryption                                                                                           [string]
+  --encryptionPublicKey, --encKey   SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem)                                     [string]
+  --httpsPrivateKey                 Web Server TLS/SSL Private Key (pem)                                                                                                    [string]
+  --httpsCert                       Web Server TLS/SSL Certificate (pem)                                                                                                    [string]
+  --https                           Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                            [boolean] [required] [default: false]
+  --configFile, --conf              Path to a SAML attribute config file                                                  [required] [default: "/Users/karl/src/saml-idp/config.js"]
+  --rollSession                     Create a new session for every authn request instead of reusing an existing session                                   [boolean] [default: false]
+  --authnContextClassRef, --acr     Authentication Context Class Reference                   [string] [default: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"]
+  --authnContextDecl, --acd         Authentication Context Declaration (XML FilePath)                                                                                       [string]
 ```
 
 # IdP SAML Settings
@@ -140,12 +154,9 @@ The default IdP issuer is `urn:example:idp`.  You can change this with the `--is
 
 ## Signing Certificate
 
-You must generate a self-signed certificate for the IdP.
+The signing certificate public key must be specified as a file path or PEM string using the `cert` argument
 
-    openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300
-
-The signing certificate public key must be sepcified as a file path or PEM string using the `cert` argument
-The signing certificate private key must be sepcified as a file path or PEM string using the `key` argument
+The signing certificate private key must be specified as a file path or PEM string using the `key` argument
 
 ### Passing key/cert pairs from environment variables
 
@@ -250,15 +261,15 @@ New attributes can be defined at runtime in the IdP UI or statically by modifyin
 
 Encrypted assertions require both a certificate and public key from the target service provider in the PEM format (base64 encoding of `.der`, `.cer`, `.cert`, `.crt`).  You can convert certificate formats with `openssl`
 
-#### DER to PEM
+### DER to PEM
 
 `openssl x509 -inform der -in to-convert.der -out converted.pem`
 
 > The following formats or extensions should be convertible to the pem format: `.der`, `.cer`, `.cert`, `.crt
 
-#### PEM Certificate to Public Key
+### PEM Certificate to Public Key
 
-PEM files that contain the header `-----BEGIN CERTIFICATE-----` can also be converted to  just the public key which is a file with just the `-----BEGIN PUBLIC KEY-----` header
+PEM files that contain the header `-----BEGIN CERTIFICATE-----` can also be converted to just the public key which is a file with just the `-----BEGIN PUBLIC KEY-----` header
 
 `openssl x509 -pubkey -noout -in cert.pem > pub.key`
 
