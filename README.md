@@ -11,21 +11,88 @@ This app provides a simple SAML Identity Provider (IdP) to test SAML 2.0 Service
 
 Simply modify Dockerfile to specify your own parameters.
 
-## Manual Installation
+## Installation - npm
 
-1. `npm install`
-3. `openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300`
+``` shell
+npm install --global saml-idp
+```
 
-### Usage
+## Installation - manual
+
+From inside a local copy of thie repo
+
+``` shell
+npm install
+# or
+npm link
+```
+
+## Installation - as a library
+
+``` shell
+npm install saml-idp
+```
+
+## Generating a key / certificate pair
+
+``` shell
+openssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300
+```
+
+### Usage - as a library
+
+An IDP server can be started using the exported `runServer` function. `runServer` accepts a config object which matches the interface of the `saml-idp` command.
+
+``` javascript
+const {runServer} = require('saml-idp');
+
+runServer({
+  acsUrl: `https://foo.okta.com/auth/saml20/assertion-consumer`,
+  audience: `https://foo.okta.com/auth/saml20/metadata`,
+});
+```
+
+#### with custom user config
+
+``` javascript
+const {runServer} = require('saml-idp');
+
+runServer({
+  acsUrl: `https://foo.okta.com/auth/saml20/assertion-consumer`,
+  audience: `https://foo.okta.com/auth/saml20/metadata`,
+  config: {
+    user: userDefaults,
+    // The auth-service requires at least one AttributeStatement in the SAML assertion.
+    metadata: [{
+      id: 'email',
+      optional: false,
+      displayName: 'E-Mail Address',
+      description: 'The e-mail address of the user',
+      multiValue: false
+    }, {
+      id: "userType",
+      optional: true,
+      displayName: 'User Type',
+      description: 'The type of user',
+      options: ['Admin', 'Editor', 'Commenter']
+    }],
+    user: {
+      email: 'saml.jackson@example.com',
+    },
+  },
+});
+```
+
+### Usage - via the included bin
 
 #### SSO Profile
-```
-node app.js --acs {POST URL} --aud {audience}
+``` shell
+saml-idp --acs {POST URL} --aud {audience}
 ```
 
 #### SSO & SLO Profile
 ```
-node app.js --acs {POST URL} --slo {POST URL} --aud {audience}
+saml-idp --acs {POST URL} --slo {POST URL} --aud {audience}
 ```
 
 Open `http://localhost:7000` in your browser to start an IdP initiated flow to your SP
@@ -33,7 +100,7 @@ Open `http://localhost:7000` in your browser to start an IdP initiated flow to y
 #### Example
 
 ```
-node app.js --acs https://foo.okta.com/auth/saml20/example --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV
+saml-idp --acs https://foo.okta.com/auth/saml20/example --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV
 ```
 
 #### Options
@@ -85,7 +152,7 @@ The signing certificate private key must be sepcified as a file path or PEM stri
 Signing certificate key/cert pairs can also be passed from environment variables.
 
 ```
-node app.js --acs {POST URL} --aud {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
+saml-idp --acs {POST URL} --aud {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
 ```
 
 ## Single Sign-On Service Binding
