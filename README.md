@@ -98,13 +98,13 @@ runServer({
 #### SSO Profile
 
 ``` shell
-saml-idp --acs {POST URL} --aud {audience}
+saml-idp --acsUrl {POST URL} --audience {audience}
 ```
 
 #### SSO & SLO Profile
 
 ```
-saml-idp --acs {POST URL} --slo {POST URL} --aud {audience}
+saml-idp --acsUrl {POST URL} --sloUrl {POST URL} --audience {audience}
 ```
 
 Open `http://localhost:7000` in your browser to start an IdP initiated flow to your SP
@@ -112,39 +112,36 @@ Open `http://localhost:7000` in your browser to start an IdP initiated flow to y
 #### Example
 
 ```
-saml-idp --acs https://foo.okta.com/auth/saml20/example --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV
+saml-idp --acsUrl https://foo.okta.com/auth/saml20/example --audience https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV
 ```
 
 #### Options
 
-Most parameters can be defined with the following command-line arguments:
+The following options can either be passed as `--<option>` or to `runServer` in an options object.
 
-```
-Options:
-  --help                            Show help                                                                                                                              [boolean]
-  --version                         Show version number                                                                                                                    [boolean]
-  --settings                        Path to JSON config file
-  --port, -p                        IdP Web Server Listener Port                                                                                          [required] [default: 7000]
-  --cert                            IdP Signature PublicKey Certificate                                                                [required] [default: "./idp-public-cert.pem"]
-  --key                             IdP Signature PrivateKey Certificate                                                               [required] [default: "./idp-private-key.pem"]
-  --issuer, --iss                   IdP Issuer URI                                                                                           [required] [default: "urn:example:idp"]
-  --acsUrl, --acs                   SP Assertion Consumer URL                                                                                                             [required]
-  --sloUrl, --slo                   SP Single Logout URL
-  --audience, --aud                 SP Audience URI                                                                                                                       [required]
-  --serviceProviderId, --spId       SP Issuer/Entity URI                                                                                                                    [string]
-  --relayState, --rs                Default SAML RelayState for SAMLResponse
-  --disableRequestAcsUrl, --static  Disables ability for SP AuthnRequest to specify Assertion Consumer URL                                                [boolean] [default: false]
-  --encryptAssertion, --enc         Encrypts assertion with SP Public Key                                                                                 [boolean] [default: false]
-  --encryptionCert, --encCert       SP Certificate (pem) for Assertion Encryption                                                                                           [string]
-  --encryptionPublicKey, --encKey   SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem)                                     [string]
-  --httpsPrivateKey                 Web Server TLS/SSL Private Key (pem)                                                                                                    [string]
-  --httpsCert                       Web Server TLS/SSL Certificate (pem)                                                                                                    [string]
-  --https                           Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                            [boolean] [required] [default: false]
-  --configFile, --conf              Path to a SAML attribute config file                                                  [required] [default: "/Users/karl/src/saml-idp/config.js"]
-  --rollSession                     Create a new session for every authn request instead of reusing an existing session                                   [boolean] [default: false]
-  --authnContextClassRef, --acr     Authentication Context Class Reference                   [string] [default: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"]
-  --authnContextDecl, --acd         Authentication Context Declaration (XML FilePath)                                                                                       [string]
-```
+Option (* required)      | Description                                                                                         | Default
+-----------------------: | --------------------------------------------------------------------------------------------------- | ----------
+**port**                 | IdP Web Server Listener Port                                                                        | 7000
+**cert** _*_             | IdP Signature PublicKey Certificate                                                                 | ./idp-public-cert.pem
+**key** _*_              | IdP Signature PrivateKey Certificate                                                                | ./idp-private-key.pem
+**issuer** _*_           | IdP Issuer URI                                                                                      | urn:example:idp
+**acsUrl** _*_           | SP Assertion Consumer URL                                                                           |
+**sloUrl**               | SP Single                                                                                           |
+**audience** _*_         | SP Audience URI                                                                                     |
+**serviceProviderId**    | SP Issuer/Entity URI                                                                                |
+**relayState**           | Default SAML RelayState                                                                             |
+**disableRequestAcsUrl** | Disables ability for SP AuthnRequest to specify Assertion Consumer URL                              | false
+**encryptAssertion**     | Encrypts assertion with SP Public Key                                                               | false
+**encryptionCert**       | SP Certificate (pem) for Assertion Encryption                                                       |
+**encryptionPublicKey**  | SP RSA Public Key (pem) for Assertion Encryption (e.g. openssl x509 -pubkey -noout -in sp-cert.pem) |
+**httpsPrivateKey**      | Web Server TLS/SSL Private Key (pem)                                                                |
+**httpsCert**            | Web Server TLS/SSL Certificate (pem)                                                                |
+**https** _*_            | Enables HTTPS Listener (requires httpsPrivateKey and httpsCert)                                     | false
+**configFile** _*_       | Path to a SAML attribute config file                                                                | saml-idp/config.js
+**rollSession**          | Create a new session for every authn request instead of reusing an existing session                 | false
+**authnContextClassRef** | Authentication Context Class Reference                                                              | urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+**authnContextDecl**     | Authentication Context Declaration (XML FilePath)                                                   |
+
 
 # IdP SAML Settings
 
@@ -154,7 +151,16 @@ The default IdP issuer is `urn:example:idp`.  You can change this with the `--is
 
 ## Signing Certificate
 
-The signing certificate public key must be specified as a file path or PEM string using the `cert` argument
+The signing certificate public key must be specified as a file path or PEM string using the `cert` argument.
+
+To generate a self-signed certificate for the IdP run
+
+``` shell
+openssl req -x509 -new -newkey rsa:2048 -nodes \
+  -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' \
+  -keyout idp-private-key.pem \
+  -out idp-public-cert.pem -days 7300
+```
 
 The signing certificate private key must be specified as a file path or PEM string using the `key` argument
 
@@ -163,7 +169,7 @@ The signing certificate private key must be specified as a file path or PEM stri
 Signing certificate key/cert pairs can also be passed from environment variables.
 
 ```
-saml-idp --acs {POST URL} --aud {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
+saml-idp --acsUrl {POST URL} --audience {audience} --cert="$SAML_CERT" --key="$SAML_KEY"
 ```
 
 ## Single Sign-On Service Binding
@@ -263,7 +269,9 @@ Encrypted assertions require both a certificate and public key from the target s
 
 ### DER to PEM
 
-`openssl x509 -inform der -in to-convert.der -out converted.pem`
+``` shell
+openssl x509 -inform der -in to-convert.der -out converted.pem
+```
 
 > The following formats or extensions should be convertible to the pem format: `.der`, `.cer`, `.cert`, `.crt
 
@@ -271,5 +279,7 @@ Encrypted assertions require both a certificate and public key from the target s
 
 PEM files that contain the header `-----BEGIN CERTIFICATE-----` can also be converted to just the public key which is a file with just the `-----BEGIN PUBLIC KEY-----` header
 
-`openssl x509 -pubkey -noout -in cert.pem > pub.key`
+``` shell
+openssl x509 -pubkey -noout -in cert.pem > pub.key
+```
 
