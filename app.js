@@ -122,10 +122,7 @@ function processArgs(args, options) {
   if (options) {
     baseArgv = yargs(args).config(options);
   } else {
-    baseArgv = yargs(args).config('settings', function(settingsPathArg) {
-      const settingsPath = resolveFilePath(settingsPathArg);
-      return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    });
+    baseArgv = yargs(args);
   }
   return baseArgv
     .usage('\nSimple IdP for SAML 2.0 WebSSO & SLO Profile\n\n' +
