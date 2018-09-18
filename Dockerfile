@@ -1,13 +1,9 @@
-FROM node:latest 
+FROM node:latest
 
 ADD ./package.json package.json
-RUN npm install -g bower
 RUN npm install
 
-ADD ./bower.json bower.json
-RUN bower install --allow-root
-
-EXPOSE 7000 7000 
+EXPOSE 7000 7000
 
 # ADD ./node_modules node_modules
 ADD ./lib lib

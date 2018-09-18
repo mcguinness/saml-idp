@@ -12,7 +12,6 @@ const express             = require('express'),
       extend              = require('extend'),
       hbs                 = require('hbs'),
       logger              = require('morgan'),
-      cookieParser        = require('cookie-parser'),
       bodyParser          = require('body-parser'),
       session             = require('express-session'),
       yargs               = require('yargs/yargs'),
@@ -419,7 +418,6 @@ function _runServer(argv) {
   app.set('view engine', 'hbs');
   app.set('view options', { layout: 'layout' })
   app.engine('handlebars', hbs.__express);
-  app.use('/bower_components', express.static(__dirname + '/bower_components'))
 
   // Register Helpers
   hbs.registerHelper('extend', function(name, context) {
@@ -462,15 +460,14 @@ function _runServer(argv) {
         return req.path.startsWith('/bower_components') || req.path.startsWith('/css')
       }
   }));
-  app.use(bodyParser.urlencoded({extended: true}))
-  app.use(cookieParser());
+  app.use(bodyParser.urlencoded({extended: true}));
   app.use(express.static(path.join(__dirname, 'public')));
   app.use(session({
     secret: 'The universe works on a math equation that never even ever really ends in the end',
     resave: false,
     saveUninitialized: true,
     name: 'idp_sid',
-    cookie: { maxAge: 60000 }
+    cookie: { maxAge: 60 * 60 * 1000 }
   }));
 
   /**
