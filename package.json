@@ -37,8 +37,5 @@
     "xml-formatter": "^1.0.1",
     "xmldom": "^0.1.27",
     "yargs": "^12.0.2"
-  },
-  "devDependencies": {
-    "bower": "^1.8.4"
   }
 }
