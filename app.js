@@ -538,6 +538,7 @@ function _runServer(argv) {
     console.log('Processing SAML SLO request for participant => \n', req.participant);
 
     return samlp.logout({
+      issuer:                 req.idp.options.issuer,
       cert:                   req.idp.options.cert,
       key:                    req.idp.options.key,
       digestAlgorithm:        req.idp.options.digestAlgorithm,
