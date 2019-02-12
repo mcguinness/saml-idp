@@ -3,62 +3,50 @@
  * User Profile
  */
 var profile = {
-  userName: 'saml.jackson@example.com',
+  userName: '******@buysell-technologies.com',
   nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-  firstName: 'Saml',
-  lastName: 'Jackson',
-  displayName: 'saml jackson',
-  email: 'saml.jackson@example.com',
+  firstName: 'Hisahiro',
+  lastName: 'Tsukamoto',
+  displayName: 'buysell',
+  email: '******@buysell-technologies.com',
   mobilePhone: '+1-415-555-5141',
-  groups: 'Simple IdP Users, West Coast Users, Cloud Users'
+  groups: 'Simple IdP Users, Cloud Users'
 }
 
 /**
  * SAML Attribute Metadata
  */
-var metadata = [{
-  id: "firstName",
-  optional: false,
-  displayName: 'First Name',
-  description: 'The given name of the user',
-  multiValue: false
-}, {
-  id: "lastName",
-  optional: false,
-  displayName: 'Last Name',
-  description: 'The surname of the user',
-  multiValue: false
-}, {
-  id: "displayName",
-  optional: true,
-  displayName: 'Display Name',
-  description: 'The display name of the user',
-  multiValue: false
-}, {
-  id: "email",
-  optional: false,
-  displayName: 'E-Mail Address',
-  description: 'The e-mail address of the user',
-  multiValue: false
-},{
-  id: "mobilePhone",
-  optional: true,
-  displayName: 'Mobile Phone',
-  description: 'The mobile phone of the user',
-  multiValue: false
-}, {
-  id: "groups",
-  optional: true,
-  displayName: 'Groups',
-  description: 'Group memberships of the user',
-  multiValue: true
-}, {
-  id: "userType",
-  optional: true,
-  displayName: 'User Type',
-  description: 'The type of user',
-  options: ['Admin', 'Editor', 'Commenter']
-}];
+ var metadata = [{
+   id: "User.LastName",
+   optional: false,
+   displayName: 'Last Name',
+   description: 'The given name of the user',
+   multiValue: false
+ }, {
+   id: "User.FirstName",
+   optional: false,
+   displayName: 'First Name',
+   description: 'The surname of the user',
+   multiValue: false
+ }, {
+   id: "employee_number",
+   optional: true,
+   displayName: 'employee number',
+   description: 'The display name of the user',
+   multiValue: false
+ }, {
+   id: "location",
+   optional: false,
+   displayName: 'location',
+   description: 'The e-mail address of the user',
+   multiValue: false
+ },{
+   id: "position",
+   optional: false,
+   displayName: 'position',
+   description: 'The mobile phone of the user',
+   multiValue: false
+ }];
 
 module.exports = {
   user: profile,
