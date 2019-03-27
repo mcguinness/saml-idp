@@ -335,8 +335,6 @@ function _runServer(argv) {
    * IdP Configuration
    */
 
-  SimpleProfileMapper.prototype.metadata = argv.config.metadata;
-
   const idpOptions = {
     issuer:                 argv.issuer,
     serviceProviderId:      argv.serviceProviderId || argv.audience,
@@ -361,7 +359,7 @@ function _runServer(argv) {
     authnContextClassRef:   argv.authnContextClassRef,
     authnContextDecl:       argv.authnContextDecl,
     includeAttributeNameFormat: true,
-    profileMapper:          SimpleProfileMapper,
+    profileMapper:          SimpleProfileMapper.fromMetadata(argv.config.metadata),
     postEndpointPath:       IDP_PATHS.SSO,
     redirectEndpointPath:   IDP_PATHS.SSO,
     logoutEndpointPaths:    argv.sloUrl ?
