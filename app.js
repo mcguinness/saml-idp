@@ -3,7 +3,8 @@
  * Module dependencies.
  */
 
-const express             = require('express'),
+const chalk               = require('chalk'),
+      express             = require('express'),
       os                  = require('os'),
       fs                  = require('fs'),
       http                = require('http'),
@@ -33,37 +34,45 @@ const IDP_PATHS = {
   SIGN_OUT: '/signout',
   SETTINGS: '/settings'
 }
+const CERT_OPTIONS = [
+  'cert',
+  'key',
+  'encryptionCert',
+  'encryptionPublicKey',
+  'httpsPrivateKey',
+  'httpsCert',
+];
+const WILDCARD_ADDRESSES = ['0.0.0.0', '::'];
+const UNDEFINED_VALUE = 'None';
+const CRYPT_TYPES = {
+  certificate: /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/,
+  'RSA private key': /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/,
+  'public key': /-----BEGIN PUBLIC KEY-----\n[^-]*\n-----END PUBLIC KEY-----/,
+};
+const KEY_CERT_HELP_TEXT = dedent(chalk`
+  To generate a key/cert pair for the IdP, run the following command:
 
-const cryptTypes           = {
-      certificate: /-----BEGIN CERTIFICATE-----[^-]*-----END CERTIFICATE-----/,
-      'RSA private key': /-----BEGIN RSA PRIVATE KEY-----\n[^-]*\n-----END RSA PRIVATE KEY-----/,
-      'public key': /-----BEGIN PUBLIC KEY-----\n[^-]*\n-----END PUBLIC KEY-----/,
-    },
-    KEY_CERT_HELP_TEXT = "Please generate a key-pair for the IdP using the following openssl command:\n" +
-      "\topenssl req -x509 -new -newkey rsa:2048 -nodes -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' -keyout idp-private-key.pem -out idp-public-cert.pem -days 7300";
-
+  {gray openssl req -x509 -new -newkey rsa:2048 -nodes \
+    -subj '/C=US/ST=California/L=San Francisco/O=JankyCo/CN=Test Identity Provider' \
+    -keyout idp-private-key.pem \
+    -out idp-public-cert.pem -days 7300}`
+);
 
 function matchesCertType(value, type) {
-  // console.info(`Testing ${cryptTypes[type].toString()} against "${value}"`);
-  // console.info(`result: ${cryptTypes[type] && cryptTypes[type].test(value)}`);
-  return cryptTypes[type] && cryptTypes[type].test(value);
-}
-
-function bufferFromString(value) {
-  if (Buffer.hasOwnProperty('from')) {
-    // node 6+
-    return Buffer.from(value);
-  } else {
-    return new Buffer(value);
-  }
+  return CRYPT_TYPES[type] && CRYPT_TYPES[type].test(value);
 }
 
 function resolveFilePath(filePath) {
+  if (filePath.startsWith('saml-idp/')) {
+    // Allows file path options to files included in this package, like config.js
+    const resolvedPath = require.resolve(filePath.replace(/^saml\-idp\//, `${__dirname}/`));
+    return fs.existsSync(filePath) && filePath;
+  }
   var possiblePath;
   if (fs.existsSync(filePath)) {
     return filePath;
   }
-  if (filePath.slice(0, 2) === '~/') {
+  if (filePath.startsWith('~/')) {
     possiblePath = path.resolve(process.env.HOME, filePath.slice(2));
     if (fs.existsSync(possiblePath)) {
       return possiblePath;
@@ -72,13 +81,9 @@ function resolveFilePath(filePath) {
       return filePath;
     }
   }
-  ['.', __dirname].forEach(function (base) {
-    possiblePath = path.resolve(base, filePath);
-    if (fs.existsSync(possiblePath)) {
-      return possiblePath;
-    }
-  });
-  return null;
+  return ['.', __dirname]
+    .map(base => path.resolve(base, filePath))
+    .find(possiblePath => fs.existsSync(possiblePath));
 }
 
 function makeCertFileCoercer(type, description, helpText) {
@@ -92,8 +97,7 @@ function makeCertFileCoercer(type, description, helpText) {
       return fs.readFileSync(filePath)
     }
     throw new Error(
-      'Invalid ' + description + ', not a valid crypt cert/key or file path' +
-      (helpText ? '\n' + helpText : '')
+      chalk`{red Invalid / missing {bold ${description}}} - {yellow not a valid crypt key/cert or file path}${helpText ? '\n' + helpText : ''}`
     )
   };
 }
@@ -109,27 +113,67 @@ function getHashCode(str) {
   return hash;
 }
 
+function dedent(str) {
+  // Reduce the indentation of all lines by the indentation of the first line
+  const match = str.match(/^\n?( +)/);
+  if (!match) {
+    return str;
+  }
+  const indentRe = new RegExp(`\n${match[1]}`, 'g');
+  return str.replace(indentRe, '\n').replace(/^\n/, '');
+}
+
+function formatOptionValue(key, value) {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (CERT_OPTIONS.includes(key)) {
+    return chalk`${
+      value.toString()
+        .replace(/-----.+?-----|\n/g, '')
+        .substring(0, 80)
+    }{white …}`;
+  }
+  if (!value && value !== false) {
+    return UNDEFINED_VALUE;
+  }
+  if (typeof value === 'function') {
+    const lines = `${value}`.split('\n');
+    return lines[0].slice(0, -2);
+  }
+  return `${JSON.stringify(value)}`;
+}
+
+function prettyPrintXml(xml, indent) {
+  // This works well, because we format the xml before applying the replacements
+  const prettyXml = xmlFormat(xml, {indentation: '  '})
+    // Matches `<{prefix}:{name} .*?>`
+    .replace(/<(\/)?((?:[\w]+)(?::))?([\w]+)(.*?)>/g, chalk`<{green $1$2{bold $3}}$4>`)
+    // Matches ` {attribute}="{value}"
+    .replace(/ ([\w:]+)="(.+?)"/g, chalk` {yellow.bold $1}={blue "$2"}`);
+  if (indent) {
+    return prettyXml.replace(/(^|\n)/g, `$1${' '.repeat(indent)}`);
+  }
+  return prettyXml;
+}
+
 
 /**
  * Arguments
  */
 function processArgs(args, options) {
   var baseArgv;
-  console.log();
-  console.log('loading configuration...');
 
   if (options) {
     baseArgv = yargs(args).config(options);
   } else {
-    baseArgv = yargs(args).config('settings', function(settingsPathArg) {
-      const settingsPath = resolveFilePath(settingsPathArg);
-      return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    });
+    baseArgv = yargs(args);
   }
   return baseArgv
     .usage('\nSimple IdP for SAML 2.0 WebSSO & SLO Profile\n\n' +
         'Launches an IdP web server that mints SAML assertions or logout responses for a Service Provider (SP)\n\n' +
-        'Usage:\n\t$0 -acs {url} -aud {uri}')
+        'Usage:\n\t$0 --acsUrl {url} --audience {uri}')
+    .alias({h: 'help'})
     .options({
       port: {
         description: 'IdP Web Server Listener Port',
@@ -238,7 +282,7 @@ function processArgs(args, options) {
       configFile: {
         description: 'Path to a SAML attribute config file',
         required: true,
-        default: require.resolve('./config.js'),
+        default: 'saml-idp/config.js',
         alias: 'conf'
       },
       rollSession: {
@@ -267,7 +311,7 @@ function processArgs(args, options) {
         }
       }
     })
-    .example('\t$0 --acs http://acme.okta.com/auth/saml20/exampleidp --aud https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
+    .example('$0 --acsUrl http://acme.okta.com/auth/saml20/exampleidp --audience https://www.okta.com/saml2/service-provider/spf5aFRRXFGIMAYXQPNV', '')
     .check(function(argv, aliases) {
       if (argv.encryptAssertion) {
         if (argv.encryptionPublicKey === undefined) {
@@ -298,7 +342,6 @@ function processArgs(args, options) {
     .wrap(baseArgv.terminalWidth());
 }
 
-
 function _runServer(argv) {
   const app = express();
   const httpServer = argv.https ?
@@ -306,29 +349,40 @@ function _runServer(argv) {
     http.createServer(app);
   const blocks = {};
 
-  console.log();
-  console.log('Listener Port:\n\t' + argv.port);
-  console.log('HTTPS Enabled:\n\t' + argv.https);
-  console.log();
-  console.log('[IdP]');
-  console.log();
-  console.log('Issuer URI:\n\t' + argv.issuer);
-  console.log('Sign Response Message:\n\t' + argv.signResponse);
-  console.log('Encrypt Assertion:\n\t' + argv.encryptAssertion);
-  console.log('Authentication Context Class Reference:\n\t' + argv.authnContextClassRef);
-  console.log('Authentication Context Declaration:\n\n' + argv.authnContextDecl);
-  console.log('Default RelayState:\n\t' + argv.relayState);
-  console.log();
-  console.log('[SP]');
-  console.log();
-  console.log('Issuer URI:\n\t' + argv.serviceProviderId);
-  console.log('Audience URI:\n\t' + argv.audience);
-  console.log('ACS URL:\n\t' + argv.acsUrl);
-  console.log('SLO URL:\n\t' + argv.sloUrl);
-  console.log('Trust ACS URL in Request:\n\t' + !argv.disableRequestAcsUrl);
-  console.log();
+  console.log(dedent(chalk`
+    Listener Port:
+      {blue ${argv.port}}
+    HTTPS Enabled:
+      {blue ${argv.https}}
 
-  console.log();
+    {bold [{cyan Identity Provider}]}
+
+    Issuer URI:
+      {blue ${argv.issuer}}
+    Sign Response Message:
+      {blue ${argv.signResponse}}
+    Encrypt Assertion:
+      {blue ${argv.encryptAssertion}}
+    Authentication Context Class Reference:
+      {blue ${argv.authnContextClassRef || UNDEFINED_VALUE}}
+    Authentication Context Declaration:
+      {blue ${argv.authnContextDecl || UNDEFINED_VALUE}}
+    Default RelayState:
+      {blue ${argv.relayState || UNDEFINED_VALUE}}
+
+    {bold [{cyan Service Provider}]}
+
+    Issuer URI:
+      {blue ${argv.serviceProviderId || UNDEFINED_VALUE}}
+    Audience URI:
+      {blue ${argv.audience || UNDEFINED_VALUE}}
+    ACS URL:
+      {blue ${argv.acsUrl || UNDEFINED_VALUE}}
+    SLO URL:
+      {blue ${argv.sloUrl || UNDEFINED_VALUE}}
+    Trust ACS URL in Request:
+      {blue ${!argv.disableRequestAcsUrl}}
+  `));
 
 
   /**
@@ -390,10 +444,15 @@ function _runServer(argv) {
                               }
                             },
     responseHandler:        function(response, opts, req, res, next) {
-                              console.log();
-                              console.log(`Sending SAMLResponse to ${opts.postUrl} with RelayState ${opts.RelayState} =>\n`);
-                              console.log(xmlFormat(response.toString(), {indentation: '  '}));
-                              console.log();
+                              console.log(dedent(chalk`
+                                Sending SAML Response to {cyan ${opts.postUrl}} =>
+                                  {bold RelayState} =>
+                                    {cyan ${opts.RelayState || UNDEFINED_VALUE}}
+                                  {bold SAMLResponse} =>`
+                              ));
+
+                              console.log(prettyPrintXml(response.toString(), 4));
+
                               res.render('samlresponse', {
                                 AcsUrl: opts.postUrl,
                                 SAMLResponse: response.toString('base64'),
@@ -614,8 +673,15 @@ function _runServer(argv) {
     authOptions.sessionIndex = getSessionIndex(req);
 
     // Keep calm and Single Sign On
-    console.log('Sending SAML Response\nUser => \n%s\nOptions => \n',
-      JSON.stringify(req.user, null, 2), authOptions);
+    console.log(dedent(chalk`
+      Generating SAML Response using =>
+        {bold User} => ${Object.entries(req.user).map(([key, value]) => chalk`
+          ${key}: {blue ${value}}`
+        ).join('')}
+        {bold SAMLP Options} => ${Object.entries(authOptions).map(([key, value]) => chalk`
+          ${key}: {blue ${formatOptionValue(key, value)}}`
+        ).join('')}
+    `));
     samlp.auth(authOptions)(req, res);
   })
 
@@ -716,39 +782,33 @@ function _runServer(argv) {
    * Start IdP Web Server
    */
 
-  console.log('starting idp server on port %s', app.get('port'));
+  console.log(chalk`Starting IdP server on port {cyan ${app.get('port')}}...\n`);
 
   httpServer.listen(app.get('port'), function() {
-    const scheme   = argv.https ? 'https' : 'http',
-        address  = httpServer.address(),
-        hostname = os.hostname();
-        baseUrl  = address.address === '0.0.0.0' || address.address === '::' ?
-          scheme + '://' + hostname + ':' + address.port :
-          scheme + '://localhost:' + address.port;
+    const scheme          = argv.https ? 'https' : 'http',
+          {address, port} = httpServer.address(),
+          hostname        = WILDCARD_ADDRESSES.includes(address) ? os.hostname() : 'localhost',
+          baseUrl         = `${scheme}://${hostname}:${port}`;
 
-    console.log();
-    console.log('SAML IdP Metadata URL: ');
-    console.log('\t=> ' + baseUrl + IDP_PATHS.METADATA);
-    console.log();
-    console.log('SSO Bindings: ');
-    console.log();
-    console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
-    console.log('\t\t=> ' + baseUrl + IDP_PATHS.SSO);
-    console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-    console.log('\t\t=> ' + baseUrl + IDP_PATHS.SSO);
-    console.log();
-    if (argv.sloUrl) {
-      console.log('SLO Bindings: ');
-      console.log();
-      console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
-      console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
-      console.log('\turn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-      console.log('\t\t=> ' + baseUrl + IDP_PATHS.SLO);
-      console.log();
-    }
-    console.log('idp server ready');
-    console.log('\t=> ' + baseUrl);
-    console.log();
+    console.log(dedent(chalk`
+      IdP Metadata URL:
+        {blue ${baseUrl}${IDP_PATHS.METADATA}}
+
+      SSO Bindings:
+        urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+          => {blue ${baseUrl}${IDP_PATHS.SSO}}
+        urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+          => {blue ${baseUrl}${IDP_PATHS.SSO}}
+      ${argv.sloUrl ? `
+      SLO Bindings:
+        urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+          => {blue ${baseUrl}${IDP_PATHS.SLO}}
+        urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+          => {blue ${baseUrl}${IDP_PATHS.SLO}}
+      ` : ''}
+      IdP server ready at
+        {blue ${baseUrl}}
+    `));
   });
 }
 
