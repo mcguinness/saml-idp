@@ -63,10 +63,11 @@ function matchesCertType(value, type) {
 }
 
 function resolveFilePath(filePath) {
+
   if (filePath.startsWith('saml-idp/')) {
     // Allows file path options to files included in this package, like config.js
     const resolvedPath = require.resolve(filePath.replace(/^saml\-idp\//, `${__dirname}/`));
-    return fs.existsSync(filePath) && filePath;
+    return fs.existsSync(resolvedPath) && resolvedPath;
   }
   var possiblePath;
   if (fs.existsSync(filePath)) {
