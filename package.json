@@ -1,7 +1,7 @@
 {
   "name": "saml-idp",
   "description": "Test Identity Provider (IdP) for SAML 2.0 Web Browser SSO Profile",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "private": false,
   "author": "Karl McGuinness",
   "keywords": [
@@ -30,9 +30,9 @@
     "chalk": "^2.4.1",
     "debug": "~4.1.1",
     "express": "^4.16.4",
-    "express-session": "^1.15.6",
+    "express-session": "^1.16.1",
     "extend": "^3.0.2",
-    "hbs": "^4.0.3",
+    "hbs": "^4.0.4",
     "morgan": "^1.9.1",
     "samlp": "github:mcguinness/node-samlp",
     "xml-formatter": "^1.1.0",
