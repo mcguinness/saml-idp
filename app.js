@@ -151,7 +151,7 @@ function prettyPrintXml(xml, indent) {
     // Matches `<{prefix}:{name} .*?>`
     .replace(/<(\/)?((?:[\w]+)(?::))?([\w]+)(.*?)>/g, chalk`<{green $1$2{bold $3}}$4>`)
     // Matches ` {attribute}="{value}"
-    .replace(/ ([\w:]+)="(.+?)"/g, chalk` {yellow.bold $1}={blue "$2"}`);
+    .replace(/ ([\w:]+)="(.+?)"/g, chalk` {white $1}={cyan "$2"}`);
   if (indent) {
     return prettyXml.replace(/(^|\n)/g, `$1${' '.repeat(indent)}`);
   }
@@ -352,37 +352,37 @@ function _runServer(argv) {
 
   console.log(dedent(chalk`
     Listener Port:
-      {blue ${argv.port}}
+      {cyan ${argv.port}}
     HTTPS Enabled:
-      {blue ${argv.https}}
+      {cyan ${argv.https}}
 
-    {bold [{cyan Identity Provider}]}
+    {bold [{yellow Identity Provider}]}
 
     Issuer URI:
-      {blue ${argv.issuer}}
+      {cyan ${argv.issuer}}
     Sign Response Message:
-      {blue ${argv.signResponse}}
+      {cyan ${argv.signResponse}}
     Encrypt Assertion:
-      {blue ${argv.encryptAssertion}}
+      {cyan ${argv.encryptAssertion}}
     Authentication Context Class Reference:
-      {blue ${argv.authnContextClassRef || UNDEFINED_VALUE}}
+      {cyan ${argv.authnContextClassRef || UNDEFINED_VALUE}}
     Authentication Context Declaration:
-      {blue ${argv.authnContextDecl || UNDEFINED_VALUE}}
+      {cyan ${argv.authnContextDecl || UNDEFINED_VALUE}}
     Default RelayState:
-      {blue ${argv.relayState || UNDEFINED_VALUE}}
+      {cyan ${argv.relayState || UNDEFINED_VALUE}}
 
-    {bold [{cyan Service Provider}]}
+    {bold [{yellow Service Provider}]}
 
     Issuer URI:
-      {blue ${argv.serviceProviderId || UNDEFINED_VALUE}}
+      {cyan ${argv.serviceProviderId || UNDEFINED_VALUE}}
     Audience URI:
-      {blue ${argv.audience || UNDEFINED_VALUE}}
+      {cyan ${argv.audience || UNDEFINED_VALUE}}
     ACS URL:
-      {blue ${argv.acsUrl || UNDEFINED_VALUE}}
+      {cyan ${argv.acsUrl || UNDEFINED_VALUE}}
     SLO URL:
-      {blue ${argv.sloUrl || UNDEFINED_VALUE}}
+      {cyan ${argv.sloUrl || UNDEFINED_VALUE}}
     Trust ACS URL in Request:
-      {blue ${!argv.disableRequestAcsUrl}}
+      {cyan ${!argv.disableRequestAcsUrl}}
   `));
 
 
@@ -677,10 +677,10 @@ function _runServer(argv) {
     console.log(dedent(chalk`
       Generating SAML Response using =>
         {bold User} => ${Object.entries(req.user).map(([key, value]) => chalk`
-          ${key}: {blue ${value}}`
+          ${key}: {cyan ${value}}`
         ).join('')}
         {bold SAMLP Options} => ${Object.entries(authOptions).map(([key, value]) => chalk`
-          ${key}: {blue ${formatOptionValue(key, value)}}`
+          ${key}: {cyan ${formatOptionValue(key, value)}}`
         ).join('')}
     `));
     samlp.auth(authOptions)(req, res);
@@ -793,22 +793,22 @@ function _runServer(argv) {
 
     console.log(dedent(chalk`
       IdP Metadata URL:
-        {blue ${baseUrl}${IDP_PATHS.METADATA}}
+        {cyan ${baseUrl}${IDP_PATHS.METADATA}}
 
       SSO Bindings:
         urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
-          => {blue ${baseUrl}${IDP_PATHS.SSO}}
+          => {cyan ${baseUrl}${IDP_PATHS.SSO}}
         urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
-          => {blue ${baseUrl}${IDP_PATHS.SSO}}
+          => {cyan ${baseUrl}${IDP_PATHS.SSO}}
       ${argv.sloUrl ? `
       SLO Bindings:
         urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
-          => {blue ${baseUrl}${IDP_PATHS.SLO}}
+          => {cyan ${baseUrl}${IDP_PATHS.SLO}}
         urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
-          => {blue ${baseUrl}${IDP_PATHS.SLO}}
+          => {cyan ${baseUrl}${IDP_PATHS.SLO}}
       ` : ''}
       IdP server ready at
-        {blue ${baseUrl}}
+        {cyan ${baseUrl}}
     `));
   });
 }
