@@ -121,6 +121,7 @@ The following options can either be passed as `--<option>` or to `runServer` in 
 
 Option (* required)      | Description                                                                                         | Default
 -----------------------: | --------------------------------------------------------------------------------------------------- | ----------
+**host**                 | IdP Web Server Listender Host                                                                       | localhost
 **port**                 | IdP Web Server Listener Port                                                                        | 7000
 **cert** _*_             | IdP Signature PublicKey Certificate                                                                 | ./idp-public-cert.pem
 **key** _*_              | IdP Signature PrivateKey Certificate                                                                | ./idp-private-key.pem

@@ -176,6 +176,11 @@ function processArgs(args, options) {
         'Usage:\n\t$0 --acsUrl {url} --audience {uri}')
     .alias({h: 'help'})
     .options({
+      host: {
+        description: 'IdP Web Server Listener Host',
+        required: false,
+        default: 'localhost'
+      },
       port: {
         description: 'IdP Web Server Listener Port',
         required: true,
@@ -352,7 +357,7 @@ function _runServer(argv) {
 
   console.log(dedent(chalk`
     Listener Port:
-      {cyan ${argv.port}}
+      {cyan ${argv.host}:${argv.port}}
     HTTPS Enabled:
       {cyan ${argv.https}}
 
@@ -466,6 +471,7 @@ function _runServer(argv) {
    * App Environment
    */
 
+  app.set('host', process.env.HOST || argv.host);
   app.set('port', process.env.PORT || argv.port);
   app.set('views', path.join(__dirname, 'views'));
 
@@ -783,9 +789,9 @@ function _runServer(argv) {
    * Start IdP Web Server
    */
 
-  console.log(chalk`Starting IdP server on port {cyan ${app.get('port')}}...\n`);
+  console.log(chalk`Starting IdP server on port {cyan ${app.get('host')}:${app.get('port')}}...\n`);
 
-  httpServer.listen(app.get('port'), function() {
+  httpServer.listen(app.get('port'), app.get('host'), function() {
     const scheme          = argv.https ? 'https' : 'http',
           {address, port} = httpServer.address(),
           hostname        = WILDCARD_ADDRESSES.includes(address) ? os.hostname() : 'localhost',
