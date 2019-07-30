@@ -110,6 +110,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# IntelliJ
+.idea
+
 ### Project ###
 
 idp-private-key.pem
