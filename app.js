@@ -431,7 +431,7 @@ function _runServer(argv) {
     getPostURL:             function (audience, authnRequestDom, req, callback) {
                               return callback(null, (req.authnRequest && req.authnRequest.acsUrl) ?
                                 req.authnRequest.acsUrl :
-                                argv.acsUrl);
+                                req.idp.options.acsUrl);
                             },
     transformAssertion:     function(assertionDom) {
                               if (argv.authnContextDecl) {
