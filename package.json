@@ -26,17 +26,17 @@
     "node": ">=6.0.0"
   },
   "dependencies": {
-    "body-parser": "~1.18.3",
-    "chalk": "^2.4.1",
+    "body-parser": "~1.19.0",
+    "chalk": "^3.0.0",
     "debug": "~4.1.1",
-    "express": "^4.16.4",
-    "express-session": "^1.16.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "extend": "^3.0.2",
-    "hbs": "^4.0.4",
+    "hbs": "^4.1.0",
     "morgan": "^1.9.1",
     "samlp": "github:mcguinness/node-samlp",
-    "xml-formatter": "^1.1.0",
-    "xmldom": "^0.1.27",
-    "yargs": "^13.2.2"
+    "xml-formatter": "^1.2.0",
+    "xmldom": "^0.3.0",
+    "yargs": "^15.3.0"
   }
 }
