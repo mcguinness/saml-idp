@@ -30,6 +30,12 @@ npm install saml-idp
 
 ### Docker
 
+```bash
+docker pull mcguinness/saml-idp:VERSION
+```
+
+#### Local
+
 1. docker-compose build
 2. docker-compose up
 
