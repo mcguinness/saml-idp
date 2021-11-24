@@ -18,7 +18,7 @@ const chalk               = require('chalk'),
       yargs               = require('yargs/yargs'),
       xmlFormat           = require('xml-formatter'),
       samlp               = require('samlp'),
-      Parser              = require('xmldom').DOMParser,
+      Parser              = require('@xmldom/xmldom').DOMParser,
       SessionParticipants = require('samlp/lib/sessionParticipants'),
       SimpleProfileMapper = require('./lib/simpleProfileMapper.js');
 

@@ -26,6 +26,7 @@
     "node": ">=6.0.0"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.7.5",
     "body-parser": "~1.19.0",
     "chalk": "^4.0.0",
     "debug": "~4.1.1",
@@ -36,7 +37,6 @@
     "morgan": "^1.10.0",
     "samlp": "github:mcguinness/node-samlp",
     "xml-formatter": "^2.1.0",
-    "xmldom": "^0.3.0",
     "yargs": "^15.3.1"
   }
 }
