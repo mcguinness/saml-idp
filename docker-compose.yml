@@ -1,4 +1,6 @@
-saml-idp:
-   build: .
-   ports:
-    - "7000:7000"
+version: "3"
+services:
+   saml-idp:
+      build: .
+      ports:
+      - "7000:7000"
