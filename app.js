@@ -553,27 +553,37 @@ function _runServer(argv) {
    * Shared Handlers
    */
 
-  const parseSamlRequest = function(req, res, next) {
-    samlp.parseRequest(req, function(err, data) {
-      if (err) {
-        return res.render('error', {
-          message: 'SAML AuthnRequest Parse Error: ' + err.message,
-          error: err
-        });
-      };
-      if (data) {
-        req.authnRequest = {
-          relayState: req.query.RelayState || req.body.RelayState,
-          id: data.id,
-          issuer: data.issuer,
-          destination: data.destination,
-          acsUrl: data.assertionConsumerServiceURL,
-          forceAuthn: data.forceAuthn === 'true'
-        };
-        console.log('Received AuthnRequest => \n', req.authnRequest);
-      }
-      return showUser(req, res, next);
+  const _samlRequestParser = function (req) {
+    return new Promise((resolve, reject) => {
+      samlp.parseRequest(req, (err, data) => {
+        if (err) {
+          reject(err);
+        } else if (data) {
+          resolve(data);
+        }
+      })
     })
+  }
+
+  const parseSamlRequest = function(req, res, next) {
+    _samlRequestParser(req).then((data) => {
+      req.authnRequest = {
+        relayState: req.query.RelayState || req.body.RelayState,
+        id: data.id,
+        issuer: data.issuer,
+        destination: data.destination,
+        acsUrl: data.assertionConsumerServiceURL,
+        forceAuthn: data.forceAuthn === 'true'
+      };
+      console.log('Received AuthnRequest => \n', req.authnRequest);
+    }).catch((err) => {
+      return res.render('error', {
+        message: 'SAML AuthnRequest Parse Error: ' + err.message,
+        error: err
+      });
+    })
+
+    next();
   };
 
   const getSessionIndex = function(req) {
@@ -641,8 +651,8 @@ function _runServer(argv) {
     next();
   });
 
-  app.get(['/', '/idp', IDP_PATHS.SSO], parseSamlRequest);
-  app.post(['/', '/idp', IDP_PATHS.SSO], parseSamlRequest);
+  app.get(['/', '/idp', IDP_PATHS.SSO], parseSamlRequest, showUser);
+  app.post(['/', '/idp', IDP_PATHS.SSO], parseSamlRequest, showUser);
 
   app.get(IDP_PATHS.SLO, parseLogoutRequest);
   app.post(IDP_PATHS.SLO, parseLogoutRequest);
