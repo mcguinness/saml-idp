@@ -1,0 +1,29 @@
+name: PR Merge Pipeline
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  version-bumped:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    outputs:
+      result: ${{ steps.check.outputs.has-updated }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: MontyD/package-json-updated-action@1.0.1
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-build:
+    if: needs.version-bumped.outputs.result == 'true'
+    needs: version-bumped
+
+    uses: ./.github/workflows/docker.yml
