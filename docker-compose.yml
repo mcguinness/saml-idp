@@ -1,5 +1,12 @@
-saml-idp:
-   build: .
-   ports:
-    - "7000:7000"
-   net: "host"
+services:
+  saml-idp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "7000"
+    environment:
+      - SAML_ACS_URL=${SAML_ACS_URL}
+      - SAML_AUDIENCE=${SAML_AUDIENCE}
+      - SAML_SLO_URL=${SAML_SLO_URL}
+      - SAML_ISSUER=${SAML_ISSUER:-urn:example:idp}
