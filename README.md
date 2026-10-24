@@ -233,8 +233,8 @@ Profile Property      | SAML Attribute Name
 --------------------- | --------------------------------------------------------
 userName              | Subject NameID
 nameIdFormat          | Subject NameID Format
-nameIdNameQualifier   | Subject NameID Name Qualifer
-nameIdSPNameQualifier | Subject NameID SP Name Qualifer
+nameIdNameQualifier   | Subject NameID Name Qualifier
+nameIdSPNameQualifier | Subject NameID SP Name Qualifier
 nameIdSPProvidedID    | Subject NameID SP ProvidedID
 firstName             | `firstName`
 lastName              | `lastName`
